@@ -1,6 +1,12 @@
+<script setup lang="ts">
+import { usePageMeta } from '@/composables/usePageMeta'
+
+usePageMeta(() => ({}))
+</script>
+
 <template>
-  <section class="hero">
-    <h1>Image Gallery</h1>
+  <section class="hero" aria-labelledby="home-title">
+    <h1 id="home-title">{{ $t('site.name') }}</h1>
     <p>{{ $t('home.tagline') }}</p>
     <RouterLink to="/galleries" class="btn">{{ $t('home.cta') }}</RouterLink>
   </section>

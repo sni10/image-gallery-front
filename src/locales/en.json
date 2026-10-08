@@ -1,4 +1,8 @@
 {
+  "site": {
+    "name": "Image Gallery",
+    "description": "Photos, organized into themed galleries."
+  },
   "nav": {
     "home": "Home",
     "galleries": "Galleries",
@@ -11,11 +15,15 @@
   "catalog": {
     "title": "Galleries",
     "empty": "No galleries yet",
-    "photos": "{n} photo | {n} photos"
+    "photos": "{n} photo | {n} photos",
+    "description": "All photo galleries: covers, photo counts and full-screen viewing."
   },
   "gallery": {
     "back": "← All galleries",
-    "empty": "No photos in this gallery yet"
+    "empty": "No photos in this gallery yet",
+    "breadcrumbs": "Breadcrumbs",
+    "description": "Gallery \"{title}\": {n} photo | Gallery \"{title}\": {n} photos",
+    "photoAlt": "{gallery} — photo {n}"
   },
   "lightbox": {
     "close": "Close",
