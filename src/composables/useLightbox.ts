@@ -12,8 +12,8 @@ const pending = (text: string) =>
 // Opens PhotoSwipe when `index` is set, resets it to null on close.
 export function useLightbox(
   index: Ref<number | null>,
-  photos: Ref<Photo[]>,
-  total: Ref<number>,
+  photos: Readonly<Ref<Photo[]>>,
+  total: Readonly<Ref<number>>,
   loadMore: () => Promise<void>,
 ) {
   const { t } = useI18n()

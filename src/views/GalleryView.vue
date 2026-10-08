@@ -1,12 +1,11 @@
 <script setup lang="ts">
-import { ref, onMounted, onServerPrefetch, useSSRContext } from 'vue'
+import { onMounted, onServerPrefetch, useSSRContext } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { ApiError, getGallery, getGalleryPhotos, type Gallery, type Photo } from '@/api'
+import { ApiError, getGallery, getGalleryPhotos, type Gallery } from '@/api'
 import { useInfiniteList } from '@/composables/useInfiniteList'
-import { useLightbox } from '@/composables/useLightbox'
 import { usePageMeta } from '@/composables/usePageMeta'
 import { useSsrState } from '@/ssr'
-import MasonryGrid from '@/components/MasonryGrid.vue'
+import PhotoGrid from '@/components/PhotoGrid.vue'
 
 const props = defineProps<{ id: string }>()
 const { t } = useI18n()
@@ -43,18 +42,6 @@ const { items, total, loading, error, canRetry, empty, loadMore } = useInfiniteL
   `photos:${props.id}`,
   (page) => getGalleryPhotos(props.id, page),
 )
-const current = ref<number | null>(null)
-useLightbox(current, items, total, loadMore)
-
-const ratio = (p: Photo) => p.height / p.width
-
-// Thumbs are real links to the full image (crawlable, open-in-new-tab works);
-// a plain left click opens the lightbox instead.
-function open(e: MouseEvent, i: number) {
-  if (e.button !== 0 || e.ctrlKey || e.metaKey || e.shiftKey || e.altKey) return
-  e.preventDefault()
-  current.value = i
-}
 </script>
 
 <template>
@@ -82,26 +69,12 @@ function open(e: MouseEvent, i: number) {
   <article aria-labelledby="gallery-title" itemscope itemtype="https://schema.org/ImageGallery">
     <h1 id="gallery-title" itemprop="name">{{ gallery?.title ?? '…' }}</h1>
 
-    <MasonryGrid :items="items" :ratio="ratio">
-      <template #default="{ item: p, index: i }">
-        <figure class="photo" itemprop="image" itemscope itemtype="https://schema.org/ImageObject">
-          <a :href="p.url" itemprop="contentUrl" @click="open($event, i)">
-            <img
-              :src="p.thumbUrl"
-              :alt="$t('gallery.photoAlt', { gallery: gallery?.title ?? '', n: i + 1 })"
-              loading="lazy"
-              decoding="async"
-              :width="p.width"
-              :height="p.height"
-              :data-pswp-index="i"
-              itemprop="thumbnailUrl"
-            />
-          </a>
-          <meta itemprop="width" :content="String(p.width)" />
-          <meta itemprop="height" :content="String(p.height)" />
-        </figure>
-      </template>
-    </MasonryGrid>
+    <PhotoGrid
+      :items="items"
+      :total="total"
+      :load-more="loadMore"
+      :alt="(_, i) => $t('gallery.photoAlt', { gallery: gallery?.title ?? '', n: i + 1 })"
+    />
   </article>
 
   <div ref="sentinel" />
@@ -134,23 +107,6 @@ function open(e: MouseEvent, i: number) {
 }
 .crumbs a:hover {
   opacity: 1;
-}
-.photo {
-  margin: 0;
-}
-.photo a {
-  display: block;
-  border-radius: 4px;
-}
-.photo a:focus-visible {
-  outline: 2px solid #fff;
-}
-.photo img {
-  width: 100%;
-  height: auto;
-  display: block;
-  border-radius: 4px;
-  background: #222;
 }
 .status {
   text-align: center;

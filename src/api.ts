@@ -45,3 +45,7 @@ export const getGallery = (id: string) => get<Gallery>(`/galleries/${encodeURICo
 
 export const getGalleryPhotos = (id: string, page = 1, limit = 20) =>
   get<Page<Photo>>(`/galleries/${encodeURIComponent(id)}/photos?page=${page}&limit=${limit}`)
+
+// Photos of all galleries in random order; same seed = stable order across pages.
+export const getRandomPhotos = (seed: string, page = 1, limit = 20) =>
+  get<Page<Photo>>(`/photos?seed=${seed}&page=${page}&limit=${limit}`)

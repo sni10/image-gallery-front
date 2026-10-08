@@ -10,7 +10,10 @@
   },
   "home": {
     "tagline": "Photos, organized into galleries.",
-    "cta": "Browse galleries"
+    "cta": "Browse galleries",
+    "photos": "Random photos",
+    "photoAlt": "Photo {n}",
+    "empty": "No photos yet"
   },
   "catalog": {
     "title": "Galleries",
