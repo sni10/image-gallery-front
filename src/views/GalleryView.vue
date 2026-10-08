@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { getPhotos, type Photo } from '@/api/photos'
-import PhotoLightbox from '@/components/PhotoLightbox.vue'
+import { useLightbox } from '@/composables/useLightbox'
 
 const COL_MIN = 220 // px, min column width
 const GAP = 8 // px, keep in sync with .grid / .col gap
@@ -56,6 +56,8 @@ async function loadMore() {
   }
 }
 
+useLightbox(current, photos, total, loadMore)
+
 onMounted(() => {
   // ponytail: native IntersectionObserver, no scroll listeners/libs
   observer = new IntersectionObserver((entries) => entries[0]?.isIntersecting && loadMore(), {
@@ -86,6 +88,7 @@ onUnmounted(() => {
             loading="lazy"
             :width="p.width"
             :height="p.height"
+            :data-pswp-index="i"
           />
         </button>
       </li>
@@ -97,8 +100,6 @@ onUnmounted(() => {
   <p v-if="error" class="status error">
     {{ error }} <button type="button" @click="loadMore">Повторить</button>
   </p>
-
-  <PhotoLightbox v-model:index="current" :photos="photos" />
 </template>
 
 <style scoped>
