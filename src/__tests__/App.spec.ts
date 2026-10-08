@@ -1,15 +1,37 @@
-import { describe, it, expect } from 'vitest'
-import { getPhotos } from '../api/photos'
+import { describe, it, expect, vi, afterEach } from 'vitest'
+import { ApiError, getGallery } from '../api'
 
-describe('photos stub', () => {
-  it('paginates and stops at total', async () => {
-    const p1 = await getPhotos(1, 20)
-    const last = Math.ceil(p1.total / 20)
-    const pLast = await getPhotos(last, 20)
-    const pAfter = await getPhotos(last + 1, 20)
-    expect(p1.items).toHaveLength(20)
-    expect(p1.items[0]!.id).toBe('1')
-    expect(pLast.items[pLast.items.length - 1]!.id).toBe(String(p1.total))
-    expect(pAfter.items).toHaveLength(0)
+const respond = (status: number, body: unknown = {}) =>
+  vi.stubGlobal(
+    'fetch',
+    vi.fn(async () => new Response(JSON.stringify(body), { status })),
+  )
+
+afterEach(() => vi.unstubAllGlobals())
+
+describe('api errors', () => {
+  it('returns JSON on 200', async () => {
+    respond(200, { id: '1', title: 'Горы', photosCount: 0, cover: null })
+    await expect(getGallery('1')).resolves.toMatchObject({ title: 'Горы' })
+  })
+
+  it('404 is a non-retryable ApiError', async () => {
+    respond(404)
+    await expect(getGallery('999')).rejects.toMatchObject({ status: 404 })
+  })
+
+  it('5xx is ApiError with status', async () => {
+    respond(500)
+    const e = await getGallery('1').catch((e: unknown) => e)
+    expect(e).toBeInstanceOf(ApiError)
+    expect((e as ApiError).status).toBe(500)
+  })
+
+  it('network failure is ApiError with status 0', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => Promise.reject(new TypeError('Failed to fetch'))),
+    )
+    await expect(getGallery('1')).rejects.toMatchObject({ status: 0 })
   })
 })

@@ -5,7 +5,17 @@ const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
     { path: '/', name: 'home', component: HomeView },
-    { path: '/gallery', name: 'gallery', component: () => import('@/views/GalleryView.vue') },
+    {
+      path: '/galleries',
+      name: 'catalog',
+      component: () => import('@/views/CatalogView.vue'),
+    },
+    {
+      path: '/galleries/:id',
+      name: 'gallery',
+      component: () => import('@/views/GalleryView.vue'),
+      props: true,
+    },
   ],
 })
 

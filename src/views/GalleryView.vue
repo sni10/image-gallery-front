@@ -1,132 +1,69 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted } from 'vue'
-import { getPhotos, type Photo } from '@/api/photos'
+import { ref } from 'vue'
+import { getGallery, getGalleryPhotos, type Gallery, type Photo } from '@/api'
+import { useInfiniteList } from '@/composables/useInfiniteList'
 import { useLightbox } from '@/composables/useLightbox'
+import MasonryGrid from '@/components/MasonryGrid.vue'
 
-const COL_MIN = 220 // px, min column width
-const GAP = 8 // px, keep in sync with .grid / .col gap
+const props = defineProps<{ id: string }>()
 
-const photos = ref<Photo[]>([])
-const total = ref(0)
-const page = ref(0)
-const loading = ref(false)
-const error = ref('')
+const gallery = ref<Gallery>()
+getGallery(props.id).then(
+  (g) => (gallery.value = g),
+  () => {}, // ponytail: photos list shows the error; title just stays empty
+)
+
+const { items, total, loading, error, canRetry, empty, loadMore } = useInfiniteList((page) =>
+  getGalleryPhotos(props.id, page),
+)
 const current = ref<number | null>(null)
-const sentinel = ref<HTMLElement>()
-const grid = ref<HTMLElement>()
-const cols = ref(1)
-let observer: IntersectionObserver | undefined
-let resize: ResizeObserver | undefined
+useLightbox(current, items, total, loadMore)
 
-// masonry: each photo goes to the currently shortest column. Heights come from the
-// API width/height ratio, so no waiting for images, and appending never moves placed photos.
-const columns = computed(() => {
-  const out = Array.from({ length: cols.value }, () => ({
-    h: 0,
-    items: [] as { p: Photo; i: number }[],
-  }))
-  photos.value.forEach((p, i) => {
-    const col = out.reduce((a, b) => (b.h < a.h ? b : a))
-    col.items.push({ p, i })
-    col.h += p.height / p.width
-  })
-  return out
-})
-
-async function loadMore() {
-  if (loading.value || (page.value > 0 && photos.value.length >= total.value)) return
-  loading.value = true
-  error.value = ''
-  try {
-    const res = await getPhotos(page.value + 1)
-    // newest-first + page offsets: uploads during scroll shift pages, skip repeats
-    const seen = new Set(photos.value.map((p) => p.id))
-    photos.value.push(...res.items.filter((p) => !seen.has(p.id)))
-    total.value = res.total
-    page.value++
-  } catch (e) {
-    error.value = (e as Error).message
-  } finally {
-    loading.value = false
-  }
-  // re-observe: fires again if the sentinel is still on screen (tall viewport)
-  if (!error.value && sentinel.value) {
-    observer?.unobserve(sentinel.value)
-    observer?.observe(sentinel.value)
-  }
-}
-
-useLightbox(current, photos, total, loadMore)
-
-onMounted(() => {
-  // ponytail: native IntersectionObserver, no scroll listeners/libs
-  observer = new IntersectionObserver((entries) => entries[0]?.isIntersecting && loadMore(), {
-    rootMargin: '400px',
-  })
-  observer.observe(sentinel.value!)
-  resize = new ResizeObserver(([e]) => {
-    cols.value = Math.max(1, Math.floor((e!.contentRect.width + GAP) / (COL_MIN + GAP)))
-  })
-  resize.observe(grid.value!)
-})
-onUnmounted(() => {
-  observer?.disconnect()
-  resize?.disconnect()
-})
+const ratio = (p: Photo) => p.height / p.width
 </script>
 
 <template>
-  <h1>Галерея</h1>
+  <RouterLink to="/galleries" class="back">{{ $t('gallery.back') }}</RouterLink>
+  <h1>{{ gallery?.title ?? '…' }}</h1>
 
-  <div ref="grid" class="grid">
-    <ul v-for="(col, c) in columns" :key="c" class="col">
-      <li v-for="{ p, i } in col.items" :key="p.id">
-        <button type="button" @click="current = i">
-          <img
-            :src="p.thumbUrl"
-            :alt="p.title"
-            loading="lazy"
-            :width="p.width"
-            :height="p.height"
-            :data-pswp-index="i"
-          />
-        </button>
-      </li>
-    </ul>
-  </div>
+  <MasonryGrid :items="items" :ratio="ratio">
+    <template #default="{ item: p, index: i }">
+      <button type="button" class="thumb" @click="current = i">
+        <img
+          :src="p.thumbUrl"
+          :alt="p.title"
+          loading="lazy"
+          :width="p.width"
+          :height="p.height"
+          :data-pswp-index="i"
+        />
+      </button>
+    </template>
+  </MasonryGrid>
 
   <div ref="sentinel" />
-  <p v-if="loading" class="status">Загрузка…</p>
+  <p v-if="loading" class="status">{{ $t('common.loading') }}</p>
+  <p v-if="empty" class="status">{{ $t('gallery.empty') }}</p>
   <p v-if="error" class="status error">
-    {{ error }} <button type="button" @click="loadMore">Повторить</button>
+    {{ error }}
+    <button v-if="canRetry" type="button" @click="loadMore">{{ $t('common.retry') }}</button>
   </p>
 </template>
 
 <style scoped>
-.grid {
-  display: flex;
-  gap: 8px;
-  align-items: flex-start;
+.back {
+  opacity: 0.7;
+  text-decoration: none;
 }
-.col {
-  flex: 1;
-  min-width: 0;
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-.col button {
+.thumb {
   all: unset;
   cursor: pointer;
   display: block;
 }
-.col button:focus-visible {
+.thumb:focus-visible {
   outline: 2px solid #fff;
 }
-.col img {
+.thumb img {
   width: 100%;
   height: auto;
   display: block;

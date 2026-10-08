@@ -1,12 +1,13 @@
 import { watch, onUnmounted, type Ref } from 'vue'
 import PhotoSwipe from 'photoswipe'
 import 'photoswipe/style.css'
-import type { Photo } from '@/api/photos'
+import type { Photo } from '@/api'
+import { i18n } from '@/i18n'
 
 const PREFETCH = 5 // start loading next page when this close to the end of loaded photos
 const WHEEL_LOCK = 350 // ms between wheel-driven slide changes
-const PENDING =
-  '<div style="display:grid;place-items:center;height:100%;color:#aaa">Загрузка…</div>'
+const pending = () =>
+  `<div style="display:grid;place-items:center;height:100%;color:#aaa">${i18n.global.t('common.loading')}</div>`
 
 // Opens PhotoSwipe when `index` is set, resets it to null on close.
 export function useLightbox(
@@ -23,21 +24,22 @@ export function useLightbox(
 
   watch(index, (i) => {
     if (i == null || pswp) return
+    const { t } = i18n.global
     pswp = new PhotoSwipe({
       index: i,
       loop: false,
-      closeTitle: 'Закрыть',
-      zoomTitle: 'Увеличить',
-      arrowPrevTitle: 'Предыдущее',
-      arrowNextTitle: 'Следующее',
-      errorMsg: 'Не удалось загрузить фото',
+      closeTitle: t('lightbox.close'),
+      zoomTitle: t('lightbox.zoom'),
+      arrowPrevTitle: t('lightbox.prev'),
+      arrowNextTitle: t('lightbox.next'),
+      errorMsg: t('lightbox.loadError'),
     })
     // slides count = server total, so the viewer knows the real end;
     // not-yet-loaded slides show a placeholder and get refreshed after loadMore
     pswp.addFilter('numItems', () => Math.max(total.value, photos.value.length))
     pswp.addFilter('itemData', (_, idx) => {
       const p = photos.value[idx]
-      if (!p) return { html: PENDING }
+      if (!p) return { html: pending() }
       return { src: p.url, msrc: p.thumbUrl, width: p.width, height: p.height, alt: p.title }
     })
     // zoom-in/out animation from/to the grid thumbnail

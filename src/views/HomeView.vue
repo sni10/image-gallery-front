@@ -1,8 +1,8 @@
 <template>
   <section class="hero">
     <h1>Image Gallery</h1>
-    <p>Фотографии в одном месте.</p>
-    <RouterLink to="/gallery" class="btn">Открыть галерею</RouterLink>
+    <p>{{ $t('home.tagline') }}</p>
+    <RouterLink to="/galleries" class="btn">{{ $t('home.cta') }}</RouterLink>
   </section>
 </template>
 

@@ -1,0 +1,37 @@
+{
+  "nav": {
+    "home": "Home",
+    "galleries": "Galleries",
+    "language": "Language"
+  },
+  "home": {
+    "tagline": "Photos, organized into galleries.",
+    "cta": "Browse galleries"
+  },
+  "catalog": {
+    "title": "Galleries",
+    "empty": "No galleries yet",
+    "photos": "{n} photo | {n} photos"
+  },
+  "gallery": {
+    "back": "← All galleries",
+    "empty": "No photos in this gallery yet"
+  },
+  "lightbox": {
+    "close": "Close",
+    "zoom": "Zoom",
+    "prev": "Previous",
+    "next": "Next",
+    "loadError": "Could not load the photo"
+  },
+  "common": {
+    "loading": "Loading…",
+    "retry": "Retry"
+  },
+  "errors": {
+    "network": "No connection to the server",
+    "notFound": "Not found",
+    "server": "Server error: {status}",
+    "unknown": "Something went wrong"
+  }
+}
