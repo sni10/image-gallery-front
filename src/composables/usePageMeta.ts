@@ -4,7 +4,9 @@ import { HEAD_KEY } from '@/ssr'
 
 // Page <title>, description and og:image. The server puts them into the HTML (entry-server.ts),
 // the client keeps document.title/description in sync on navigation and language switch.
-export function usePageMeta(meta: () => { title?: string; description?: string; image?: string }) {
+export function usePageMeta(
+  meta: () => { title?: string; description?: string; image?: string; noindex?: boolean },
+) {
   const { t } = useI18n()
   const head = inject(HEAD_KEY)!
   head.meta = computed(() => {
@@ -13,6 +15,7 @@ export function usePageMeta(meta: () => { title?: string; description?: string; 
       title: m.title ? `${m.title} · ${t('site.name')}` : t('site.name'),
       description: m.description ?? t('site.description'),
       image: m.image,
+      noindex: m.noindex,
     }
   })
 

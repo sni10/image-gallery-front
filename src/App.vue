@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
 import { LOCALES, saveLocale, type Locale } from '@/i18n'
+import { me } from '@/api'
 
 const { locale } = useI18n()
 function setLocale(l: Locale) {
@@ -16,6 +17,18 @@ function setLocale(l: Locale) {
       <!-- routes aren't nested, so mark /galleries/:id active by prefix -->
       <RouterLink to="/galleries" :class="{ active: $route.path.startsWith('/galleries') }">
         {{ $t('nav.galleries') }}
+      </RouterLink>
+      <!-- server and first client render are anonymous; the email appears once /me loads -->
+      <RouterLink
+        v-if="me"
+        to="/account"
+        class="user"
+        :class="{ active: $route.path.startsWith('/account') }"
+      >
+        {{ me.email }}
+      </RouterLink>
+      <RouterLink v-else to="/login" class="user" :class="{ active: $route.path === '/login' }">
+        {{ $t('nav.login') }}
       </RouterLink>
       <div class="lang" role="group" :aria-label="$t('nav.language')">
         <button
@@ -80,10 +93,52 @@ main {
 .nav a.active {
   font-weight: 600;
 }
-.lang {
+.user {
   margin-left: auto;
+  max-width: 40vw;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.lang {
   display: flex;
   gap: 4px;
+}
+.form {
+  max-width: 420px;
+  margin: 24px auto;
+}
+.form form {
+  display: grid;
+  gap: 12px;
+  margin-bottom: 32px;
+}
+.form label {
+  display: grid;
+  gap: 4px;
+}
+.form input,
+.form button {
+  font: inherit;
+  padding: 8px 12px;
+  border-radius: 6px;
+  border: 1px solid #444;
+  background: #1c1c1c;
+  color: inherit;
+}
+.form button {
+  cursor: pointer;
+  background: #eee;
+  color: #111;
+}
+.form button:disabled {
+  opacity: 0.6;
+}
+.form p {
+  margin: 0;
+}
+.form .error {
+  color: #f66;
 }
 .lang button {
   background: none;

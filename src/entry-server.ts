@@ -24,6 +24,7 @@ export async function render(url: string, cookie?: string, acceptLanguage?: stri
         `<meta property="og:type" content="website">`,
         `<meta property="og:title" content="${esc(m.title)}">`,
         `<meta property="og:description" content="${esc(m.description)}">`,
+        m.noindex ? `<meta name="robots" content="noindex">` : '',
         m.image ? `<meta property="og:image" content="${esc(m.image)}">` : '',
       ]
         .filter(Boolean)

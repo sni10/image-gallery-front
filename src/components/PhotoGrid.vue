@@ -2,6 +2,7 @@
 import { ref, toRef } from 'vue'
 import type { Photo } from '@/api'
 import { useLightbox } from '@/composables/useLightbox'
+import { useFavorite } from '@/composables/useFavorite'
 import MasonryGrid from '@/components/MasonryGrid.vue'
 
 // Masonry of photos + PhotoSwipe viewer. Each photo is schema.org ImageObject; the parent
@@ -14,7 +15,8 @@ const props = defineProps<{
 }>()
 
 const current = ref<number | null>(null)
-useLightbox(current, toRef(props, 'items'), toRef(props, 'total'), props.loadMore)
+const toggle = useFavorite()
+useLightbox(current, toRef(props, 'items'), toRef(props, 'total'), props.loadMore, toggle)
 
 const ratio = (p: Photo) => p.height / p.width
 
@@ -43,6 +45,16 @@ function open(e: MouseEvent, i: number) {
             itemprop="thumbnailUrl"
           />
         </a>
+        <button
+          type="button"
+          class="fav"
+          :aria-pressed="p.isFavorite"
+          :title="$t(p.isFavorite ? 'favorites.remove' : 'favorites.add')"
+          :aria-label="$t(p.isFavorite ? 'favorites.remove' : 'favorites.add')"
+          @click="toggle(p)"
+        >
+          ♥
+        </button>
         <meta itemprop="width" :content="String(p.width)" />
         <meta itemprop="height" :content="String(p.height)" />
       </figure>
@@ -53,6 +65,36 @@ function open(e: MouseEvent, i: number) {
 <style scoped>
 .photo {
   margin: 0;
+  position: relative;
+}
+.fav {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 32px;
+  height: 32px;
+  border: 0;
+  border-radius: 50%;
+  background: rgb(0 0 0 / 0.45);
+  color: #fff;
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+.fav[aria-pressed='true'] {
+  color: #f45;
+  opacity: 1;
+}
+.photo:hover .fav,
+.fav:focus-visible {
+  opacity: 1;
+}
+@media (hover: none) {
+  .fav {
+    opacity: 1;
+  }
 }
 .photo a {
   display: block;

@@ -53,5 +53,6 @@ export function errorMessage(t: T, e: unknown): string {
   if (!(e instanceof ApiError)) return t('errors.unknown')
   if (e.status === 0) return t('errors.network')
   if (e.status === 404) return t('errors.notFound')
+  if (e.status === 429) return t('errors.tooMany')
   return t('errors.server', { status: e.status })
 }

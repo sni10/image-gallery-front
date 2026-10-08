@@ -15,6 +15,7 @@ export interface PageMeta {
   title: string
   description: string
   image?: string
+  noindex?: boolean // private pages (account, auth forms)
 }
 export interface Head {
   meta?: ComputedRef<PageMeta>

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, afterEach } from 'vitest'
-import { ApiError, getGallery } from '../api'
+import { ApiError, getGallery, logout } from '../api'
 
 const respond = (status: number, body: unknown = {}) =>
   vi.stubGlobal(
@@ -33,5 +33,50 @@ describe('api errors', () => {
       vi.fn(async () => Promise.reject(new TypeError('Failed to fetch'))),
     )
     await expect(getGallery('1')).rejects.toMatchObject({ status: 0 })
+  })
+})
+
+describe('session', () => {
+  // routes fake API responses by path; records calls
+  function api(routes: Record<string, () => Response>) {
+    const calls: { path: string; auth: string | null }[] = []
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (url: string, init: RequestInit) => {
+        const path = new URL(url).pathname
+        calls.push({ path, auth: new Headers(init.headers).get('Authorization') })
+        return routes[path]!()
+      }),
+    )
+    return calls
+  }
+  const json = (body: unknown, status = 200) => new Response(JSON.stringify(body), { status })
+
+  it('parallel requests share one refresh (refresh token is single-use)', async () => {
+    localStorage.setItem('refresh', 'r1')
+    const calls = api({
+      '/auth/refresh': () => json({ access: 'a2', refresh: 'r2' }),
+      '/galleries/1': () => json({ id: '1' }),
+    })
+    await Promise.all([getGallery('1'), getGallery('1')])
+    expect(calls.filter((c) => c.path === '/auth/refresh')).toHaveLength(1)
+    expect(calls.filter((c) => c.path === '/galleries/1').map((c) => c.auth)).toEqual([
+      'Bearer a2',
+      'Bearer a2',
+    ])
+    expect(localStorage.getItem('refresh')).toBe('r2')
+  })
+
+  it('dead refresh drops the session and retries anonymously', async () => {
+    const calls = api({
+      '/auth/logout': () => new Response(null, { status: 204 }),
+      '/auth/refresh': () => json({}, 401),
+      '/galleries/1': () => json({ id: '1' }),
+    })
+    await logout() // drop in-memory access left by the previous test
+    localStorage.setItem('refresh', 'dead')
+    await expect(getGallery('1')).resolves.toMatchObject({ id: '1' })
+    expect(localStorage.getItem('refresh')).toBeNull()
+    expect(calls[calls.length - 1]).toEqual({ path: '/galleries/1', auth: null })
   })
 })

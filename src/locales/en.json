@@ -6,7 +6,9 @@
   "nav": {
     "home": "Home",
     "galleries": "Galleries",
-    "language": "Language"
+    "language": "Language",
+    "login": "Sign in",
+    "account": "Account"
   },
   "home": {
     "tagline": "Photos, organized into galleries.",
@@ -43,9 +45,47 @@
     "network": "No connection to the server",
     "notFound": "Not found",
     "server": "Server error: {status}",
-    "unknown": "Something went wrong"
+    "unknown": "Something went wrong",
+    "tooMany": "Too many attempts, wait a minute"
   },
   "notFound": {
     "title": "Page not found"
+  },
+  "auth": {
+    "login": "Sign in",
+    "register": "Sign up",
+    "email": "Email",
+    "password": "Password",
+    "invalid": "Wrong email or password",
+    "unconfirmed": "Email is not confirmed.",
+    "resend": "Resend the email",
+    "sent": "We sent an email to {email}. Follow the link in it.",
+    "noAccount": "No account? Sign up",
+    "haveAccount": "Already have an account? Sign in"
+  },
+  "confirm": {
+    "title": "Email confirmation",
+    "invalid": "The link is invalid or expired",
+    "emailChanged": "Email changed to {email}"
+  },
+  "account": {
+    "title": "Account",
+    "joined": "Member since {date}",
+    "logout": "Sign out",
+    "changeEmail": "Change email",
+    "newEmail": "New email",
+    "emailSent": "A confirmation link was sent to {email}",
+    "changePassword": "Change password",
+    "currentPassword": "Current password",
+    "newPassword": "New password",
+    "passwordChanged": "Password changed, other devices are signed out",
+    "save": "Save"
+  },
+  "favorites": {
+    "title": "Favorites",
+    "empty": "No favorites yet",
+    "photoAlt": "Favorites — photo {n}",
+    "add": "Add to favorites",
+    "remove": "Remove from favorites"
   }
 }
