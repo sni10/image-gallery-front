@@ -1,5 +1,12 @@
 <script setup lang="ts">
-import { LOCALES, setLocale } from '@/i18n'
+import { useI18n } from 'vue-i18n'
+import { LOCALES, saveLocale, type Locale } from '@/i18n'
+
+const { locale } = useI18n()
+function setLocale(l: Locale) {
+  locale.value = l
+  saveLocale(l)
+}
 </script>
 
 <template>

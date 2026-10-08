@@ -1,16 +1,25 @@
-import { watchEffect } from 'vue'
-import { i18n } from '@/i18n'
+import { computed, inject, watchEffect } from 'vue'
+import { useI18n } from 'vue-i18n'
+import { HEAD_KEY } from '@/ssr'
 
-// Sets <title> and <meta name="description"> for the current page; re-runs on locale/data change.
-// ponytail: client-side only — bots that don't run JS (social previews, some crawlers) still see
-// index.html defaults; needs SSR/prerender if per-page previews matter
-export function usePageMeta(meta: () => { title?: string; description?: string }) {
+// Page <title>, description and og:image. The server puts them into the HTML (entry-server.ts),
+// the client keeps document.title/description in sync on navigation and language switch.
+export function usePageMeta(meta: () => { title?: string; description?: string; image?: string }) {
+  const { t } = useI18n()
+  const head = inject(HEAD_KEY)!
+  head.meta = computed(() => {
+    const m = meta()
+    return {
+      title: m.title ? `${m.title} · ${t('site.name')}` : t('site.name'),
+      description: m.description ?? t('site.description'),
+      image: m.image,
+    }
+  })
+
+  if (import.meta.env.SSR) return
   watchEffect(() => {
-    const { t } = i18n.global
-    const { title, description } = meta()
-    document.title = title ? `${title} · ${t('site.name')}` : t('site.name')
-    document
-      .querySelector('meta[name="description"]')
-      ?.setAttribute('content', description ?? t('site.description'))
+    const { title, description } = head.meta!.value
+    document.title = title
+    document.querySelector('meta[name="description"]')?.setAttribute('content', description)
   })
 }

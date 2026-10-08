@@ -2,12 +2,12 @@ import { watch, onUnmounted, type Ref } from 'vue'
 import PhotoSwipe from 'photoswipe'
 import 'photoswipe/style.css'
 import type { Photo } from '@/api'
-import { i18n } from '@/i18n'
+import { useI18n } from 'vue-i18n'
 
 const PREFETCH = 5 // start loading next page when this close to the end of loaded photos
 const WHEEL_LOCK = 350 // ms between wheel-driven slide changes
-const pending = () =>
-  `<div style="display:grid;place-items:center;height:100%;color:#aaa">${i18n.global.t('common.loading')}</div>`
+const pending = (text: string) =>
+  `<div style="display:grid;place-items:center;height:100%;color:#aaa">${text}</div>`
 
 // Opens PhotoSwipe when `index` is set, resets it to null on close.
 export function useLightbox(
@@ -16,6 +16,7 @@ export function useLightbox(
   total: Ref<number>,
   loadMore: () => Promise<void>,
 ) {
+  const { t } = useI18n()
   let pswp: PhotoSwipe | null = null
 
   function prefetch() {
@@ -24,7 +25,6 @@ export function useLightbox(
 
   watch(index, (i) => {
     if (i == null || pswp) return
-    const { t } = i18n.global
     pswp = new PhotoSwipe({
       index: i,
       loop: false,
@@ -39,7 +39,7 @@ export function useLightbox(
     pswp.addFilter('numItems', () => Math.max(total.value, photos.value.length))
     pswp.addFilter('itemData', (_, idx) => {
       const p = photos.value[idx]
-      if (!p) return { html: pending() }
+      if (!p) return { html: pending(t('common.loading')) }
       return { src: p.url, msrc: p.thumbUrl, width: p.width, height: p.height, alt: p.title }
     })
     // zoom-in/out animation from/to the grid thumbnail

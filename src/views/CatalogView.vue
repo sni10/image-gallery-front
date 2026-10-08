@@ -8,7 +8,7 @@ import MasonryGrid from '@/components/MasonryGrid.vue'
 const { t } = useI18n()
 usePageMeta(() => ({ title: t('catalog.title'), description: t('catalog.description') }))
 
-const { items, loading, error, canRetry, empty, loadMore } = useInfiniteList((page) =>
+const { items, loading, error, canRetry, empty, loadMore } = useInfiniteList('catalog', (page) =>
   getGalleries(page),
 )
 const ratio = (g: Gallery) => (g.cover ? g.cover.height / g.cover.width : 2 / 3)

@@ -14,6 +14,8 @@ defineSlots<{ default(p: { item: T; index: number }): unknown }>()
 const GAP = 8 // px, keep in sync with .grid / .col gap
 const grid = useTemplateRef<HTMLElement>('grid')
 const cols = ref(1)
+// server and first client render don't know the width: CSS columns until mounted
+const measured = ref(false)
 let resize: ResizeObserver | undefined
 
 // masonry: each item goes to the currently shortest column. Heights come from the known
@@ -31,19 +33,28 @@ const columns = computed(() => {
   return out
 })
 
+const fit = (width: number) => Math.max(1, Math.floor((width + GAP) / (props.minWidth + GAP)))
+
 onMounted(() => {
-  resize = new ResizeObserver(([e]) => {
-    cols.value = Math.max(1, Math.floor((e!.contentRect.width + GAP) / (props.minWidth + GAP)))
-  })
+  cols.value = fit(grid.value!.clientWidth)
+  measured.value = true
+  resize = new ResizeObserver(([e]) => (cols.value = fit(e!.contentRect.width)))
   resize.observe(grid.value!)
 })
 onUnmounted(() => resize?.disconnect())
 </script>
 
 <template>
-  <div ref="grid" class="grid">
-    <ul v-for="(col, c) in columns" :key="c" class="col">
-      <li v-for="{ item, index } in col.items" :key="item.id">
+  <div ref="grid">
+    <div v-if="measured" class="grid">
+      <ul v-for="(col, c) in columns" :key="c" class="col">
+        <li v-for="{ item, index } in col.items" :key="item.id">
+          <slot :item="item" :index="index" />
+        </li>
+      </ul>
+    </div>
+    <ul v-else class="fallback" :style="{ columnWidth: `${minWidth}px` }">
+      <li v-for="(item, index) in items" :key="item.id">
         <slot :item="item" :index="index" />
       </li>
     </ul>
@@ -65,5 +76,15 @@ onUnmounted(() => resize?.disconnect())
   display: flex;
   flex-direction: column;
   gap: 8px;
+}
+.fallback {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  column-gap: 8px;
+}
+.fallback li {
+  break-inside: avoid;
+  margin-bottom: 8px;
 }
 </style>

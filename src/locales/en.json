@@ -41,5 +41,8 @@
     "notFound": "Not found",
     "server": "Server error: {status}",
     "unknown": "Something went wrong"
+  },
+  "notFound": {
+    "title": "Page not found"
   }
 }

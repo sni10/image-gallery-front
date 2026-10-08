@@ -1,18 +1,30 @@
-import { ref, computed, onMounted, onUnmounted, useTemplateRef, type Ref } from 'vue'
+import {
+  ref,
+  computed,
+  toRefs,
+  onMounted,
+  onUnmounted,
+  onServerPrefetch,
+  useTemplateRef,
+} from 'vue'
+import { useI18n } from 'vue-i18n'
 import { ApiError, type Page } from '@/api'
 import { errorMessage } from '@/i18n'
+import { useSsrState } from '@/ssr'
 
 // Infinite scroll: loads the next page when the element with ref="sentinel" nears the viewport.
+// The first page is fetched during server render and handed to the client under `key`.
 export function useInfiniteList<T extends { id: string }>(
+  key: string,
   fetchPage: (page: number) => Promise<Page<T>>,
 ) {
-  const items = ref([]) as Ref<T[]>
-  const total = ref(0)
-  const page = ref(0)
+  const { t } = useI18n()
+  const state = useSsrState(key, () => ({ items: [] as T[], total: 0, page: 0 }))
+  const { items, total, page } = toRefs(state.value)
   const loading = ref(false)
   const failure = ref<unknown>(null)
   // computed, so the message follows a language switch
-  const error = computed(() => (failure.value ? errorMessage(failure.value) : ''))
+  const error = computed(() => (failure.value ? errorMessage(t, failure.value) : ''))
   const canRetry = ref(true)
   const empty = computed(() => page.value > 0 && total.value === 0)
   const sentinel = useTemplateRef<HTMLElement>('sentinel')
@@ -43,6 +55,8 @@ export function useInfiniteList<T extends { id: string }>(
     }
   }
 
+  // server: first page goes into the HTML; if it fails there, the client simply loads it
+  onServerPrefetch(loadMore)
   onMounted(() => {
     // ponytail: native IntersectionObserver, no scroll listeners/libs
     observer = new IntersectionObserver((entries) => entries[0]?.isIntersecting && loadMore(), {

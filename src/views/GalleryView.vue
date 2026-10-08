@@ -1,20 +1,29 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted, onServerPrefetch, useSSRContext } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { getGallery, getGalleryPhotos, type Gallery, type Photo } from '@/api'
+import { ApiError, getGallery, getGalleryPhotos, type Gallery, type Photo } from '@/api'
 import { useInfiniteList } from '@/composables/useInfiniteList'
 import { useLightbox } from '@/composables/useLightbox'
 import { usePageMeta } from '@/composables/usePageMeta'
+import { useSsrState } from '@/ssr'
 import MasonryGrid from '@/components/MasonryGrid.vue'
 
 const props = defineProps<{ id: string }>()
 const { t } = useI18n()
+const ssr = import.meta.env.SSR ? useSSRContext<{ status?: number }>() : undefined
 
-const gallery = ref<Gallery>()
-getGallery(props.id).then(
-  (g) => (gallery.value = g),
-  () => {}, // ponytail: photos list shows the error; title just stays empty
-)
+const gallery = useSsrState<Gallery | null>(`gallery:${props.id}`, () => null)
+async function loadGallery() {
+  if (gallery.value) return
+  try {
+    gallery.value = await getGallery(props.id)
+  } catch (e) {
+    // real 404 for crawlers; other errors: photos list shows the message, title stays empty
+    if (ssr && e instanceof ApiError && e.status === 404) ssr.status = 404
+  }
+}
+onServerPrefetch(loadGallery)
+onMounted(loadGallery)
 
 usePageMeta(() =>
   gallery.value
@@ -25,12 +34,14 @@ usePageMeta(() =>
           { title: gallery.value.title, n: gallery.value.photosCount },
           gallery.value.photosCount,
         ),
+        image: gallery.value.cover?.url,
       }
     : {},
 )
 
-const { items, total, loading, error, canRetry, empty, loadMore } = useInfiniteList((page) =>
-  getGalleryPhotos(props.id, page),
+const { items, total, loading, error, canRetry, empty, loadMore } = useInfiniteList(
+  `photos:${props.id}`,
+  (page) => getGalleryPhotos(props.id, page),
 )
 const current = ref<number | null>(null)
 useLightbox(current, items, total, loadMore)

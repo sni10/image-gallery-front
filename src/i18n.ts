@@ -1,4 +1,3 @@
-import { watchEffect } from 'vue'
 import { createI18n } from 'vue-i18n'
 import ru from '@/locales/ru.json'
 import en from '@/locales/en.json'
@@ -14,16 +13,19 @@ declare module 'vue-i18n' {
 
 export const LOCALES = ['ru', 'en'] as const
 export type Locale = (typeof LOCALES)[number]
-const STORAGE_KEY = 'locale'
+const COOKIE = 'locale'
 
-function initialLocale(): Locale {
-  try {
-    const saved = localStorage.getItem(STORAGE_KEY)
-    if (LOCALES.includes(saved as Locale)) return saved as Locale
-  } catch {
-    // storage blocked (private mode etc.) — fall through to browser language
-  }
-  return navigator.language.toLowerCase().startsWith('ru') ? 'ru' : 'en'
+// Server side: saved choice (cookie) first, then the browser's preferred language.
+export function pickLocale(cookie?: string, acceptLanguage?: string): Locale {
+  const saved = new RegExp(`(?:^|;\\s*)${COOKIE}=(\\w+)`).exec(cookie ?? '')?.[1]
+  if (LOCALES.includes(saved as Locale)) return saved as Locale
+  return (acceptLanguage ?? '').toLowerCase().startsWith('ru') ? 'ru' : 'en'
+}
+
+// Client side, after a switch: cookie so the next server render uses it too.
+export function saveLocale(locale: Locale) {
+  document.cookie = `${COOKIE}=${locale}; path=/; max-age=31536000; samesite=lax`
+  document.documentElement.lang = locale
 }
 
 // Russian has 3 plural forms: "1 галерея | 2 галереи | 5 галерей"
@@ -34,28 +36,20 @@ const ruPlural = (n: number, forms: number) => {
 }
 
 // ponytail: both locales bundled (a few KB); lazy-load per locale when there are many/large ones
-export const i18n = createI18n({
-  legacy: false,
-  locale: initialLocale(),
-  fallbackLocale: 'ru',
-  messages: { ru, en },
-  pluralRules: { ru: ruPlural },
-})
-
-export function setLocale(locale: Locale) {
-  i18n.global.locale.value = locale
-  try {
-    localStorage.setItem(STORAGE_KEY, locale)
-  } catch {
-    // not persisted, still switched for this visit
-  }
+export function createI18nFor(locale: Locale) {
+  return createI18n({
+    legacy: false,
+    locale,
+    fallbackLocale: 'ru',
+    messages: { ru, en },
+    pluralRules: { ru: ruPlural },
+  })
 }
 
-watchEffect(() => (document.documentElement.lang = i18n.global.locale.value))
+type T = ReturnType<typeof createI18nFor>['global']['t']
 
 // Reactive to locale when called inside computed/template
-export function errorMessage(e: unknown): string {
-  const { t } = i18n.global
+export function errorMessage(t: T, e: unknown): string {
   if (!(e instanceof ApiError)) return t('errors.unknown')
   if (e.status === 0) return t('errors.network')
   if (e.status === 404) return t('errors.notFound')
