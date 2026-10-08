@@ -4,6 +4,7 @@ import 'photoswipe/style.css'
 import type { Photo } from '@/api/photos'
 
 const PREFETCH = 5 // start loading next page when this close to the end of loaded photos
+const WHEEL_LOCK = 350 // ms between wheel-driven slide changes
 const PENDING =
   '<div style="display:grid;place-items:center;height:100%;color:#aaa">Загрузка…</div>'
 
@@ -44,6 +45,19 @@ export function useLightbox(
       'thumbEl',
       (el, _, idx) => document.querySelector<HTMLElement>(`[data-pswp-index="${idx}"]`) ?? el!,
     )
+    // wheel = next/prev slide (ctrl+wheel keeps PhotoSwipe's zoom).
+    // ponytail: time lock vs trackpad inertia spam; tune WHEEL_LOCK if it feels sticky/jumpy
+    let wheelAt = 0
+    pswp.on('wheel', (e) => {
+      const ev = e.originalEvent
+      if (ev.ctrlKey) return
+      e.preventDefault()
+      const d = Math.abs(ev.deltaX) > Math.abs(ev.deltaY) ? ev.deltaX : ev.deltaY
+      if (Math.abs(d) < 4 || ev.timeStamp - wheelAt < WHEEL_LOCK) return
+      wheelAt = ev.timeStamp
+      if (d > 0) pswp!.next()
+      else pswp!.prev()
+    })
     pswp.on('change', prefetch)
     pswp.on('afterInit', prefetch)
     pswp.on('destroy', () => {
