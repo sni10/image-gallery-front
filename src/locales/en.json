@@ -9,7 +9,8 @@
     "language": "Language",
     "login": "Sign in",
     "account": "Account",
-    "categories": "Categories"
+    "categories": "Categories",
+    "menu": "Menu"
   },
   "home": {
     "tagline": "Photos, organized into galleries.",

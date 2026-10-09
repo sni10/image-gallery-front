@@ -29,7 +29,13 @@ function setLocale(l: Locale) {
       <!-- phones: everything behind a burger; md and up: the horizontal menu below -->
       <details ref="mobileMenu" class="dropdown md:hidden">
         <summary class="btn btn-ghost btn-square" :aria-label="$t('nav.menu')">
-          <svg class="size-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <svg
+            class="size-6"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
             <path stroke-linecap="round" d="M4 6h16M4 12h16M4 18h16" />
           </svg>
         </summary>
@@ -67,8 +73,7 @@ function setLocale(l: Locale) {
       <RouterLink to="/" class="btn btn-ghost px-2 text-lg font-bold max-sm:hidden">
         {{ $t('site.name') }}
       </RouterLink>
-      <div class="flex-1" />
-      <ul class="menu menu-horizontal order-first hidden gap-1 px-0 md:order-none md:flex">
+      <ul class="menu menu-horizontal hidden gap-1 px-0 md:flex">
         <li>
           <RouterLink to="/" :class="{ 'menu-active': $route.path === '/' }">
             {{ $t('nav.home') }}
@@ -103,6 +108,7 @@ function setLocale(l: Locale) {
           </details>
         </li>
       </ul>
+      <div class="flex-1" />
       <!-- server and first client render are anonymous; the email appears once /me loads -->
       <RouterLink
         v-if="me"
