@@ -1,11 +1,12 @@
 import { createRouter as createVueRouter, createMemoryHistory, createWebHistory } from 'vue-router'
 import HomeView from '@/views/HomeView.vue'
+import { hasSession } from '@/api'
 
 const AuthView = () => import('@/views/AuthView.vue')
 const ConfirmView = () => import('@/views/ConfirmView.vue')
 
 export function createRouter() {
-  return createVueRouter({
+  const router = createVueRouter({
     history: import.meta.env.SSR
       ? createMemoryHistory()
       : createWebHistory(import.meta.env.BASE_URL),
@@ -29,8 +30,21 @@ export function createRouter() {
         props: true,
       },
       // account pages: noindex, data loaded on the client only (the server has no token)
-      { path: '/login', name: 'login', component: AuthView, props: { mode: 'login' } },
-      { path: '/register', name: 'register', component: AuthView, props: { mode: 'register' } },
+      // guestOnly: a signed-in visitor is sent to the account page instead
+      {
+        path: '/login',
+        name: 'login',
+        component: AuthView,
+        props: { mode: 'login' },
+        meta: { guestOnly: true },
+      },
+      {
+        path: '/register',
+        name: 'register',
+        component: AuthView,
+        props: { mode: 'register' },
+        meta: { guestOnly: true },
+      },
       { path: '/confirm-email', component: ConfirmView },
       { path: '/confirm-email-change', component: ConfirmView, props: { change: true } },
       { path: '/account', name: 'account', component: () => import('@/views/AccountView.vue') },
@@ -47,4 +61,8 @@ export function createRouter() {
       },
     ],
   })
+  // The session lives in the browser (refresh token in localStorage), so only the client can check it.
+  if (!import.meta.env.SSR)
+    router.beforeEach((to) => (to.meta.guestOnly && hasSession() ? { name: 'account' } : true))
+  return router
 }
