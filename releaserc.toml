@@ -1,0 +1,11 @@
+# Release versions come from Conventional Commits on main (python-semantic-release in CI, same as the backend):
+# fix/perf -> patch, feat -> minor, "!" / BREAKING CHANGE -> major (minor while < 1.0). Source of truth: git tags vX.Y.Z.
+[semantic_release]
+tag_format = "v{version}"
+commit_parser = "conventional"
+allow_zero_version = true
+major_on_zero = false
+
+[semantic_release.branches.main]
+match = "main"
+prerelease = false

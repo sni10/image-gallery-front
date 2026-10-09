@@ -1,11 +1,14 @@
 # Frontend (SSR) on the backend's network. Start the backend first: `docker compose up` in ../image-gallery
 services:
   front:
-    build: .
+    build:
+      context: .
+      args:
+        VITE_API_URL: http://localhost:8080 # browser -> API, baked in at build
     ports:
       - "5173:5173" # the origin the API allows (CORS_ALLOWED_ORIGINS, FRONTEND_URL)
     environment:
-      # server render -> API inside the network; the browser still uses VITE_API_URL from .env
+      # server render -> API inside the network; the browser uses VITE_API_URL from the build arg above
       API_INTERNAL_URL: http://nginx
     networks:
       - backend
