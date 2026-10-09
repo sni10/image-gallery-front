@@ -59,7 +59,13 @@ export function fieldErrors(e: unknown): Record<string, string> {
   )
 }
 
-const API_URL = import.meta.env.VITE_API_URL as string | undefined
+// Browser: VITE_API_URL (baked in at build). Server render in Docker: API_INTERNAL_URL at runtime,
+// since localhost inside the container is the container itself.
+const API_URL = (
+  import.meta.env.SSR
+    ? (process.env.API_INTERNAL_URL ?? import.meta.env.VITE_API_URL)
+    : import.meta.env.VITE_API_URL
+) as string | undefined
 
 // Session: access token in memory (15 min), refresh token in localStorage (single-use, rotated).
 // Server render never has tokens, so SSR pages are always anonymous.

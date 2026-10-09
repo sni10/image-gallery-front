@@ -1,0 +1,17 @@
+# Frontend (SSR) on the backend's network. Start the backend first: `docker compose up` in ../image-gallery
+services:
+  front:
+    build: .
+    ports:
+      - "5173:5173" # the origin the API allows (CORS_ALLOWED_ORIGINS, FRONTEND_URL)
+    environment:
+      # server render -> API inside the network; the browser still uses VITE_API_URL from .env
+      API_INTERNAL_URL: http://nginx
+    networks:
+      - backend
+    restart: unless-stopped
+
+networks:
+  backend:
+    external: true
+    name: image-gallery_default # compose default network of the ../image-gallery project
