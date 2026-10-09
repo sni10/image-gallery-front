@@ -3,23 +3,23 @@ import ru from '@/locales/ru.json'
 import en from '@/locales/en.json'
 import { ApiError } from '@/api'
 
-// ru.json is the source of truth: typed for editor autocomplete; unknown keys in code
-// are caught by __tests__/i18n.spec.ts (vue-i18n's t() still accepts any string)
-type Schema = typeof ru
+// English is the main language. en.json is the source of truth: typed for editor autocomplete; unknown keys in
+// code are caught by __tests__/i18n.spec.ts (vue-i18n's t() still accepts any string). Russian is optional.
+type Schema = typeof en
 declare module 'vue-i18n' {
   // eslint-disable-next-line @typescript-eslint/no-empty-object-type
   export interface DefineLocaleMessage extends Schema {}
 }
 
-export const LOCALES = ['ru', 'en'] as const
+export const LOCALES = ['en', 'ru'] as const
 export type Locale = (typeof LOCALES)[number]
 const COOKIE = 'locale'
 
-// Server side: saved choice (cookie) first, then the browser's preferred language.
-export function pickLocale(cookie?: string, acceptLanguage?: string): Locale {
+// Server side: English unless the visitor picked another language in the switcher (cookie).
+// The browser's Accept-Language is deliberately ignored: English is the main language, Russian is opt-in.
+export function pickLocale(cookie?: string): Locale {
   const saved = new RegExp(`(?:^|;\\s*)${COOKIE}=(\\w+)`).exec(cookie ?? '')?.[1]
-  if (LOCALES.includes(saved as Locale)) return saved as Locale
-  return (acceptLanguage ?? '').toLowerCase().startsWith('ru') ? 'ru' : 'en'
+  return LOCALES.includes(saved as Locale) ? (saved as Locale) : 'en'
 }
 
 // Client side, after a switch: cookie so the next server render uses it too.
@@ -40,8 +40,8 @@ export function createI18nFor(locale: Locale) {
   return createI18n({
     legacy: false,
     locale,
-    fallbackLocale: 'ru',
-    messages: { ru, en },
+    fallbackLocale: 'en',
+    messages: { en, ru },
     pluralRules: { ru: ruPlural },
   })
 }

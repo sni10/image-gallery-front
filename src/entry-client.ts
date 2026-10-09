@@ -10,7 +10,7 @@ declare global {
 
 // Same locale and data the server rendered with, so hydration matches the HTML.
 const lang = document.documentElement.lang as Locale
-const { app, router } = createApp(LOCALES.includes(lang) ? lang : 'ru', window.__SSR_STATE__)
+const { app, router } = createApp(LOCALES.includes(lang) ? lang : 'en', window.__SSR_STATE__)
 
 router.isReady().then(() => app.mount('#app'))
 

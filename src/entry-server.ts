@@ -5,8 +5,8 @@ import { pickLocale } from './i18n'
 const esc = (s: string) =>
   s.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
 
-export async function render(url: string, cookie?: string, acceptLanguage?: string) {
-  const lang = pickLocale(cookie, acceptLanguage)
+export async function render(url: string, cookie?: string) {
+  const lang = pickLocale(cookie)
   const { app, router, state, head } = createApp(lang)
 
   await router.push(url)

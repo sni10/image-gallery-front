@@ -35,7 +35,7 @@ app.use('*all', async (req, res) => {
       render = (await vite.ssrLoadModule('/src/entry-server.ts')).render
     }
 
-    const r = await render(url, req.headers.cookie, req.headers['accept-language'])
+    const r = await render(url, req.headers.cookie)
     const html = tpl
       .replace('__APP_LANG__', r.lang)
       .replace('<!--app-head-->', r.head)

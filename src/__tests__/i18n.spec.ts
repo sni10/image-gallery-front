@@ -10,17 +10,17 @@ const keys = (o: object, p = ''): string[] =>
   )
 
 describe('i18n', () => {
-  it('every locale has exactly the keys of ru.json', () => {
-    expect(keys(en).sort()).toEqual(keys(ru).sort())
+  it('every locale has exactly the keys of en.json', () => {
+    expect(keys(ru).sort()).toEqual(keys(en).sort())
   })
 
-  it("every t('key') used in source exists in ru.json", () => {
+  it("every t('key') used in source exists in en.json", () => {
     const sources = import.meta.glob(['../**/*.{vue,ts}', '!../__tests__/**'], {
       query: '?raw',
       import: 'default',
       eager: true,
     }) as Record<string, string>
-    const known = new Set(keys(ru))
+    const known = new Set(keys(en))
     const used = Object.entries(sources).flatMap(([file, code]) =>
       [...code.matchAll(/\bt\(\s*'([\w.]+)'/g)].map((m) => `${m[1]} (${file})`),
     )
@@ -52,10 +52,16 @@ describe('i18n', () => {
     )
   })
 
-  it('server picks locale: cookie first, then Accept-Language', () => {
-    expect(pickLocale('a=1; locale=en', 'ru-RU,ru;q=0.9')).toBe('en')
-    expect(pickLocale(undefined, 'ru-RU,ru;q=0.9')).toBe('ru')
-    expect(pickLocale('locale=xx', 'de-DE')).toBe('en')
+  it('server picks locale: English unless Russian was chosen in the switcher', () => {
     expect(pickLocale()).toBe('en')
+    expect(pickLocale('a=1; locale=ru')).toBe('ru')
+    expect(pickLocale('locale=en')).toBe('en')
+    expect(pickLocale('locale=xx')).toBe('en')
+  })
+
+  it('english is the default and the fallback', () => {
+    const { global } = createI18nFor('ru')
+    global.mergeLocaleMessage('en', { onlyInEnglish: 'english text' })
+    expect((global.t as (k: string) => string)('onlyInEnglish')).toBe('english text')
   })
 })
