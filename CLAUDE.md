@@ -20,6 +20,7 @@ Every commit message (and PR title) MUST follow [Conventional Commits](https://w
 
 Why: messages drive automatic releases on `main` (python-semantic-release, `releaserc.toml`):
 `fix`/`perf` → patch, `feat` → minor, breaking → major (minor while the version is `0.x`). Other types don't release.
+Never use `fix`/`feat` for config, Docker, compose, CI or tooling changes — use `build`, `ci` or `chore`: a wrong type publishes a needless version. Copilot gets the same rules in `.github/copilot-instructions.md` and `.github/git-commit-instructions.md`.
 CI rejects non-conforming commits on push and pull requests to `main` (`commitlint.config.mjs`).
 Check a message locally: `echo "feat(gallery): ..." | npx -p @commitlint/cli@21 -p @commitlint/config-conventional@21 commitlint`.
 
