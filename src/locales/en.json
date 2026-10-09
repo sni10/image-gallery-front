@@ -8,7 +8,8 @@
     "galleries": "Galleries",
     "language": "Language",
     "login": "Sign in",
-    "account": "Account"
+    "account": "Account",
+    "categories": "Categories"
   },
   "home": {
     "tagline": "Photos, organized into galleries.",
@@ -21,7 +22,8 @@
     "title": "Galleries",
     "empty": "No galleries yet",
     "photos": "{n} photo | {n} photos",
-    "description": "All photo galleries: covers, photo counts and full-screen viewing."
+    "description": "All photo galleries: covers, photo counts and full-screen viewing.",
+    "categoryDescription": "Galleries in \"{title}\": {n} gallery | Galleries in \"{title}\": {n} galleries"
   },
   "gallery": {
     "back": "← All galleries",

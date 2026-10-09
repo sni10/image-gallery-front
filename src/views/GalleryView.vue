@@ -1,11 +1,12 @@
 <script setup lang="ts">
-import { onMounted, onServerPrefetch, useSSRContext } from 'vue'
+import { computed, onMounted, onServerPrefetch, useSSRContext } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { ApiError, getGallery, getGalleryPhotos, type Gallery } from '@/api'
 import { useInfiniteList } from '@/composables/useInfiniteList'
 import { usePageMeta } from '@/composables/usePageMeta'
 import { useSsrState } from '@/ssr'
 import PhotoGrid from '@/components/PhotoGrid.vue'
+import BreadCrumbs from '@/components/BreadCrumbs.vue'
 
 const props = defineProps<{ id: string }>()
 const { t } = useI18n()
@@ -38,6 +39,16 @@ usePageMeta(() =>
     : {},
 )
 
+const crumbs = computed(() => {
+  const g = gallery.value
+  return [
+    { title: t('nav.galleries'), to: '/galleries' },
+    ...(g
+      ? [{ title: g.category.title, to: `/categories/${g.category.slug}` }, { title: g.title }]
+      : []),
+  ]
+})
+
 const { items, total, loading, error, canRetry, empty, loadMore } = useInfiniteList(
   `photos:${props.id}`,
   (page) => getGalleryPhotos(props.id, page),
@@ -45,26 +56,7 @@ const { items, total, loading, error, canRetry, empty, loadMore } = useInfiniteL
 </script>
 
 <template>
-  <nav :aria-label="$t('gallery.breadcrumbs')" class="crumbs">
-    <ol itemscope itemtype="https://schema.org/BreadcrumbList">
-      <li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
-        <RouterLink to="/galleries" itemprop="item">
-          <span itemprop="name">{{ $t('nav.galleries') }}</span>
-        </RouterLink>
-        <meta itemprop="position" content="1" />
-      </li>
-      <li
-        v-if="gallery"
-        itemprop="itemListElement"
-        itemscope
-        itemtype="https://schema.org/ListItem"
-        aria-current="page"
-      >
-        <span itemprop="name">{{ gallery.title }}</span>
-        <meta itemprop="position" content="2" />
-      </li>
-    </ol>
-  </nav>
+  <BreadCrumbs :items="crumbs" />
 
   <article aria-labelledby="gallery-title" itemscope itemtype="https://schema.org/ImageGallery">
     <h1 id="gallery-title" itemprop="name">{{ gallery?.title ?? '…' }}</h1>
@@ -87,27 +79,6 @@ const { items, total, loading, error, canRetry, empty, loadMore } = useInfiniteL
 </template>
 
 <style scoped>
-.crumbs ol {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  font-size: 14px;
-}
-.crumbs li + li::before {
-  content: '/';
-  margin-right: 8px;
-  opacity: 0.5;
-}
-.crumbs a {
-  opacity: 0.7;
-  text-decoration: none;
-}
-.crumbs a:hover {
-  opacity: 1;
-}
 .status {
   text-align: center;
   margin: 24px 0;

@@ -1,25 +1,62 @@
 <script setup lang="ts">
+import { computed, onServerPrefetch, useSSRContext } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { getGalleries, type Gallery } from '@/api'
+import { useCategories } from '@/composables/useCategories'
 import { useInfiniteList } from '@/composables/useInfiniteList'
 import { usePageMeta } from '@/composables/usePageMeta'
 import MasonryGrid from '@/components/MasonryGrid.vue'
+import BreadCrumbs from '@/components/BreadCrumbs.vue'
 
+// /galleries = all galleries; /categories/:slug = galleries of one category
+const props = defineProps<{ slug?: string }>()
 const { t } = useI18n()
-usePageMeta(() => ({ title: t('catalog.title'), description: t('catalog.description') }))
+const ssr = import.meta.env.SSR ? useSSRContext<{ status?: number }>() : undefined
 
-const { items, loading, error, canRetry, empty, loadMore } = useInfiniteList('catalog', (page) =>
-  getGalleries(page),
+const { categories, ready } = useCategories()
+const category = computed(() => categories.value?.find((c) => c.slug === props.slug))
+// the API answers an unknown slug with an empty list, so existence comes from /categories
+const unknown = computed(() => !!props.slug && !!categories.value && !category.value)
+onServerPrefetch(async () => {
+  await ready()
+  if (unknown.value) ssr!.status = 404
+})
+
+const title = computed(() =>
+  props.slug
+    ? (category.value?.title ?? (unknown.value ? t('notFound.title') : '…'))
+    : t('catalog.title'),
+)
+usePageMeta(() => ({
+  title: title.value,
+  description: category.value
+    ? t(
+        'catalog.categoryDescription',
+        { title: category.value.title },
+        category.value.galleriesCount,
+      )
+    : t('catalog.description'),
+}))
+const crumbs = computed(() => [
+  { title: t('nav.galleries'), to: '/galleries' },
+  { title: title.value },
+])
+
+const { items, loading, error, canRetry, empty, loadMore } = useInfiniteList(
+  `catalog:${props.slug ?? ''}`,
+  (page) => getGalleries(page, 20, props.slug),
 )
 const ratio = (g: Gallery) => (g.cover ? g.cover.height / g.cover.width : 2 / 3)
 </script>
 
 <template>
+  <BreadCrumbs v-if="slug" :items="crumbs" />
+
   <!-- schema.org microdata: crawlers read galleries/images straight from the markup -->
   <section aria-labelledby="catalog-title" itemscope itemtype="https://schema.org/CollectionPage">
-    <h1 id="catalog-title" itemprop="name">{{ $t('catalog.title') }}</h1>
+    <h1 id="catalog-title" itemprop="name">{{ title }}</h1>
 
-    <MasonryGrid :items="items" :ratio="ratio" :min-width="280">
+    <MasonryGrid v-if="!unknown" :items="items" :ratio="ratio" :min-width="280">
       <template #default="{ item: g }">
         <article
           class="card"
@@ -39,6 +76,8 @@ const ratio = (g: Gallery) => (g.cover ? g.cover.height / g.cover.width : 2 / 3)
               itemprop="thumbnailUrl"
             />
             <div v-else class="empty" />
+            <!-- category label only on the all-galleries page -->
+            <span v-if="!slug" class="tag" itemprop="genre">{{ g.category.title }}</span>
             <div class="caption">
               <h2 itemprop="name">{{ g.title }}</h2>
               <p class="count">{{ $t('catalog.photos', g.photosCount) }}</p>
@@ -49,12 +88,17 @@ const ratio = (g: Gallery) => (g.cover ? g.cover.height / g.cover.width : 2 / 3)
     </MasonryGrid>
   </section>
 
-  <div ref="sentinel" />
-  <p v-if="loading" class="status" role="status">{{ $t('common.loading') }}</p>
-  <p v-if="empty" class="status" role="status">{{ $t('catalog.empty') }}</p>
-  <p v-if="error" class="status error" role="alert">
-    {{ error }}
-    <button v-if="canRetry" type="button" @click="loadMore">{{ $t('common.retry') }}</button>
+  <template v-if="!unknown">
+    <div ref="sentinel" />
+    <p v-if="loading" class="status" role="status">{{ $t('common.loading') }}</p>
+    <p v-if="empty" class="status" role="status">{{ $t('catalog.empty') }}</p>
+    <p v-if="error" class="status error" role="alert">
+      {{ error }}
+      <button v-if="canRetry" type="button" @click="loadMore">{{ $t('common.retry') }}</button>
+    </p>
+  </template>
+  <p v-else class="status">
+    <RouterLink to="/galleries">{{ $t('gallery.back') }}</RouterLink>
   </p>
 </template>
 
@@ -84,6 +128,15 @@ const ratio = (g: Gallery) => (g.cover ? g.cover.height / g.cover.width : 2 / 3)
 .empty {
   aspect-ratio: 3 / 2;
   background: #222;
+}
+.tag {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  padding: 2px 8px;
+  border-radius: 4px;
+  background: rgb(0 0 0 / 0.6);
+  font-size: 12px;
 }
 .caption {
   position: absolute;

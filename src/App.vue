@@ -2,6 +2,18 @@
 import { useI18n } from 'vue-i18n'
 import { LOCALES, saveLocale, type Locale } from '@/i18n'
 import { me } from '@/api'
+import { useTemplateRef, watch } from 'vue'
+import { useRoute } from 'vue-router'
+import { useCategories } from '@/composables/useCategories'
+
+const { categories } = useCategories()
+// native <details> dropdown: close it after picking a category
+const menu = useTemplateRef<HTMLDetailsElement>('menu')
+const route = useRoute()
+watch(
+  () => route.fullPath,
+  () => menu.value?.removeAttribute('open'),
+)
 
 const { locale } = useI18n()
 function setLocale(l: Locale) {
@@ -18,6 +30,21 @@ function setLocale(l: Locale) {
       <RouterLink to="/galleries" :class="{ active: $route.path.startsWith('/galleries') }">
         {{ $t('nav.galleries') }}
       </RouterLink>
+      <details v-if="categories?.length" ref="menu" class="menu">
+        <summary :class="{ active: $route.path.startsWith('/categories') }">
+          {{ $t('nav.categories') }}
+        </summary>
+        <ul>
+          <li v-for="c in categories" :key="c.id">
+            <RouterLink
+              :to="`/categories/${c.slug}`"
+              :class="{ active: $route.path === `/categories/${c.slug}` }"
+            >
+              {{ c.title }} <span class="n">{{ c.galleriesCount }}</span>
+            </RouterLink>
+          </li>
+        </ul>
+      </details>
       <!-- server and first client render are anonymous; the email appears once /me loads -->
       <RouterLink
         v-if="me"
@@ -92,6 +119,51 @@ main {
 }
 .nav a.active {
   font-weight: 600;
+}
+.menu {
+  position: relative;
+}
+.menu summary {
+  cursor: pointer;
+  list-style: none;
+  opacity: 0.7;
+}
+.menu summary::after {
+  content: ' ▾';
+}
+.menu summary:hover,
+.menu[open] summary,
+.menu summary.active {
+  opacity: 1;
+}
+.menu summary.active {
+  font-weight: 600;
+}
+.menu ul {
+  position: absolute;
+  top: calc(100% + 12px);
+  left: -12px;
+  min-width: 200px;
+  max-height: 70vh;
+  overflow-y: auto;
+  margin: 0;
+  padding: 6px 0;
+  list-style: none;
+  background: #1c1c1c;
+  border: 1px solid #333;
+  border-radius: 6px;
+}
+.menu li a {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 8px 14px;
+}
+.menu li a:hover {
+  background: #2a2a2a;
+}
+.menu .n {
+  opacity: 0.5;
 }
 .user {
   margin-left: auto;

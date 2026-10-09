@@ -10,9 +10,17 @@ export interface Photo {
   isFavorite: boolean // always false for anonymous requests
 }
 
+export interface Category {
+  id: string
+  slug: string
+  title: string
+  galleriesCount: number
+}
+
 export interface Gallery {
   id: string
   title: string
+  category: Pick<Category, 'id' | 'slug' | 'title'>
   photosCount: number
   cover: Photo | null // random photo of the gallery, new on each request; null if empty
 }
@@ -124,8 +132,15 @@ async function request<T>(method: string, path: string, body?: unknown): Promise
 const get = <T>(path: string) => request<T>('GET', path)
 const post = <T>(path: string, body: unknown) => request<T>('POST', path, body)
 
-export const getGalleries = (page = 1, limit = 20) =>
-  get<Page<Gallery>>(`/galleries?page=${page}&limit=${limit}`)
+// non-empty categories, in display order, no pagination
+export const getCategories = () => get<Category[]>('/categories')
+
+// unknown category slug = empty list (not 404): check existence via getCategories()
+export const getGalleries = (page = 1, limit = 20, category?: string) =>
+  get<Page<Gallery>>(
+    `/galleries?page=${page}&limit=${limit}` +
+      (category ? `&category=${encodeURIComponent(category)}` : ''),
+  )
 
 export const getGallery = (id: string) => get<Gallery>(`/galleries/${encodeURIComponent(id)}`)
 

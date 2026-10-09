@@ -17,6 +17,12 @@ export function createRouter() {
         component: () => import('@/views/CatalogView.vue'),
       },
       {
+        path: '/categories/:slug',
+        name: 'category',
+        component: () => import('@/views/CatalogView.vue'),
+        props: true,
+      },
+      {
         path: '/galleries/:id',
         name: 'gallery',
         component: () => import('@/views/GalleryView.vue'),

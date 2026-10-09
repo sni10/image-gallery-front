@@ -55,7 +55,9 @@ async function signOut() {
       </div>
       <div class="actions">
         <RouterLink class="btn" to="/account/favorites">{{ $t('favorites.title') }}</RouterLink>
-        <button type="button" class="btn danger" @click="signOut">{{ $t('account.logout') }}</button>
+        <button type="button" class="btn danger" @click="signOut">
+          {{ $t('account.logout') }}
+        </button>
       </div>
     </div>
     <p v-else class="card" role="status">{{ $t('common.loading') }}</p>
