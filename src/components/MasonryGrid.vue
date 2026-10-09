@@ -46,45 +46,18 @@ onUnmounted(() => resize?.disconnect())
 
 <template>
   <div ref="grid">
-    <div v-if="measured" class="grid">
-      <ul v-for="(col, c) in columns" :key="c" class="col">
+    <!-- gap-2 = 8px = GAP -->
+    <div v-if="measured" class="flex items-start gap-2">
+      <ul v-for="(col, c) in columns" :key="c" class="flex min-w-0 flex-1 flex-col gap-2">
         <li v-for="{ item, index } in col.items" :key="item.id">
           <slot :item="item" :index="index" />
         </li>
       </ul>
     </div>
-    <ul v-else class="fallback" :style="{ columnWidth: `${minWidth}px` }">
-      <li v-for="(item, index) in items" :key="item.id">
+    <ul v-else class="gap-x-2" :style="{ columnWidth: `${minWidth}px` }">
+      <li v-for="(item, index) in items" :key="item.id" class="mb-2 break-inside-avoid">
         <slot :item="item" :index="index" />
       </li>
     </ul>
   </div>
 </template>
-
-<style scoped>
-.grid {
-  display: flex;
-  gap: 8px;
-  align-items: flex-start;
-}
-.col {
-  flex: 1;
-  min-width: 0;
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-.fallback {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  column-gap: 8px;
-}
-.fallback li {
-  break-inside: avoid;
-  margin-bottom: 8px;
-}
-</style>

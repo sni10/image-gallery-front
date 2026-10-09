@@ -1,3 +1,4 @@
+import './assets/main.css'
 import { createSSRApp, reactive } from 'vue'
 
 import App from './App.vue'

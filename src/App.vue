@@ -7,12 +7,13 @@ import { useRoute } from 'vue-router'
 import { useCategories } from '@/composables/useCategories'
 
 const { categories } = useCategories()
-// native <details> dropdown: close it after picking a category
+// native <details> dropdowns (categories on desktop, the whole menu on phones): close after navigating
 const menu = useTemplateRef<HTMLDetailsElement>('menu')
+const mobileMenu = useTemplateRef<HTMLDetailsElement>('mobileMenu')
 const route = useRoute()
 watch(
   () => route.fullPath,
-  () => menu.value?.removeAttribute('open'),
+  () => [menu.value, mobileMenu.value].forEach((d) => d?.removeAttribute('open')),
 )
 
 const { locale } = useI18n()
@@ -23,45 +24,104 @@ function setLocale(l: Locale) {
 </script>
 
 <template>
-  <header class="header">
-    <nav class="nav">
-      <RouterLink to="/" :class="{ active: $route.path === '/' }">{{ $t('nav.home') }}</RouterLink>
-      <!-- routes aren't nested, so mark /galleries/:id active by prefix -->
-      <RouterLink to="/galleries" :class="{ active: $route.path.startsWith('/galleries') }">
-        {{ $t('nav.galleries') }}
-      </RouterLink>
-      <details v-if="categories?.length" ref="menu" class="menu">
-        <summary :class="{ active: $route.path.startsWith('/categories') }">
-          {{ $t('nav.categories') }}
+  <header class="sticky top-0 z-10 border-b border-base-300 bg-base-100/90 backdrop-blur">
+    <nav class="navbar mx-auto max-w-7xl gap-2 px-4">
+      <!-- phones: everything behind a burger; md and up: the horizontal menu below -->
+      <details ref="mobileMenu" class="dropdown md:hidden">
+        <summary class="btn btn-ghost btn-square" :aria-label="$t('nav.menu')">
+          <svg class="size-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" d="M4 6h16M4 12h16M4 18h16" />
+          </svg>
         </summary>
-        <ul>
-          <li v-for="c in categories" :key="c.id">
-            <RouterLink
-              :to="`/categories/${c.slug}`"
-              :class="{ active: $route.path === `/categories/${c.slug}` }"
-            >
-              {{ c.title }} <span class="n">{{ c.galleriesCount }}</span>
+        <ul
+          class="menu dropdown-content z-20 mt-2 max-h-[80vh] w-64 flex-nowrap overflow-y-auto rounded-box bg-base-200 shadow-lg"
+        >
+          <li>
+            <RouterLink to="/" :class="{ 'menu-active': $route.path === '/' }">
+              {{ $t('nav.home') }}
             </RouterLink>
           </li>
+          <li>
+            <RouterLink
+              to="/galleries"
+              :class="{ 'menu-active': $route.path.startsWith('/galleries') }"
+            >
+              {{ $t('nav.galleries') }}
+            </RouterLink>
+          </li>
+          <template v-if="categories?.length">
+            <li class="menu-title">{{ $t('nav.categories') }}</li>
+            <li v-for="c in categories" :key="c.id">
+              <RouterLink
+                :to="`/categories/${c.slug}`"
+                class="justify-between"
+                :class="{ 'menu-active': $route.path === `/categories/${c.slug}` }"
+              >
+                {{ c.title }}
+                <span class="badge badge-sm badge-ghost">{{ c.galleriesCount }}</span>
+              </RouterLink>
+            </li>
+          </template>
         </ul>
       </details>
+      <RouterLink to="/" class="btn btn-ghost px-2 text-lg font-bold max-sm:hidden">
+        {{ $t('site.name') }}
+      </RouterLink>
+      <div class="flex-1" />
+      <ul class="menu menu-horizontal order-first hidden gap-1 px-0 md:order-none md:flex">
+        <li>
+          <RouterLink to="/" :class="{ 'menu-active': $route.path === '/' }">
+            {{ $t('nav.home') }}
+          </RouterLink>
+        </li>
+        <li>
+          <!-- routes aren't nested, so mark /galleries/:id active by prefix -->
+          <RouterLink
+            to="/galleries"
+            :class="{ 'menu-active': $route.path.startsWith('/galleries') }"
+          >
+            {{ $t('nav.galleries') }}
+          </RouterLink>
+        </li>
+        <li v-if="categories?.length">
+          <details ref="menu">
+            <summary :class="{ 'menu-active': $route.path.startsWith('/categories') }">
+              {{ $t('nav.categories') }}
+            </summary>
+            <ul class="z-20 max-h-[70vh] w-60 overflow-y-auto bg-base-200 shadow-lg">
+              <li v-for="c in categories" :key="c.id">
+                <RouterLink
+                  :to="`/categories/${c.slug}`"
+                  class="justify-between"
+                  :class="{ 'menu-active': $route.path === `/categories/${c.slug}` }"
+                >
+                  {{ c.title }}
+                  <span class="badge badge-sm badge-ghost">{{ c.galleriesCount }}</span>
+                </RouterLink>
+              </li>
+            </ul>
+          </details>
+        </li>
+      </ul>
       <!-- server and first client render are anonymous; the email appears once /me loads -->
       <RouterLink
         v-if="me"
         to="/account"
-        class="user"
-        :class="{ active: $route.path.startsWith('/account') }"
+        class="btn btn-ghost btn-sm max-w-[40vw] normal-case"
+        :class="{ 'btn-active': $route.path.startsWith('/account') }"
       >
-        {{ me.email }}
+        <span class="truncate">{{ me.email }}</span>
       </RouterLink>
-      <RouterLink v-else to="/login" class="user" :class="{ active: $route.path === '/login' }">
+      <RouterLink v-else to="/login" class="btn btn-primary btn-sm">
         {{ $t('nav.login') }}
       </RouterLink>
-      <div class="lang" role="group" :aria-label="$t('nav.language')">
+      <div class="join" role="group" :aria-label="$t('nav.language')">
         <button
           v-for="l in LOCALES"
           :key="l"
           type="button"
+          class="btn join-item btn-xs"
+          :class="{ 'btn-active': $i18n.locale === l }"
           :aria-pressed="$i18n.locale === l"
           @click="setLocale(l)"
         >
@@ -70,161 +130,8 @@ function setLocale(l: Locale) {
       </div>
     </nav>
   </header>
-  <main>
+  <main class="mx-auto max-w-7xl p-4">
     <!-- key: /galleries/1 -> /galleries/2 remounts instead of reusing stale state -->
     <RouterView :key="$route.fullPath" />
   </main>
 </template>
-
-<style>
-* {
-  box-sizing: border-box;
-}
-body {
-  margin: 0;
-  font-family: system-ui, sans-serif;
-  background: #111;
-  color: #eee;
-}
-a {
-  color: inherit;
-}
-main {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 16px;
-}
-.header {
-  position: sticky;
-  top: 0;
-  z-index: 10;
-  background: rgb(17 17 17 / 0.9);
-  backdrop-filter: blur(8px);
-  border-bottom: 1px solid #333;
-}
-.nav {
-  max-width: 1200px;
-  margin: 0 auto;
-  display: flex;
-  gap: 24px;
-  padding: 16px;
-}
-.nav a {
-  text-decoration: none;
-  opacity: 0.7;
-}
-.nav a:hover,
-.nav a.active {
-  opacity: 1;
-}
-.nav a.active {
-  font-weight: 600;
-}
-.menu {
-  position: relative;
-}
-.menu summary {
-  cursor: pointer;
-  list-style: none;
-  opacity: 0.7;
-}
-.menu summary::after {
-  content: ' ▾';
-}
-.menu summary:hover,
-.menu[open] summary,
-.menu summary.active {
-  opacity: 1;
-}
-.menu summary.active {
-  font-weight: 600;
-}
-.menu ul {
-  position: absolute;
-  top: calc(100% + 12px);
-  left: -12px;
-  min-width: 200px;
-  max-height: 70vh;
-  overflow-y: auto;
-  margin: 0;
-  padding: 6px 0;
-  list-style: none;
-  background: #1c1c1c;
-  border: 1px solid #333;
-  border-radius: 6px;
-}
-.menu li a {
-  display: flex;
-  justify-content: space-between;
-  gap: 16px;
-  padding: 8px 14px;
-}
-.menu li a:hover {
-  background: #2a2a2a;
-}
-.menu .n {
-  opacity: 0.5;
-}
-.user {
-  margin-left: auto;
-  max-width: 40vw;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-.lang {
-  display: flex;
-  gap: 4px;
-}
-.form {
-  max-width: 420px;
-  margin: 24px auto;
-}
-.form form {
-  display: grid;
-  gap: 12px;
-  margin-bottom: 32px;
-}
-.form label {
-  display: grid;
-  gap: 4px;
-}
-.form input,
-.form button {
-  font: inherit;
-  padding: 8px 12px;
-  border-radius: 6px;
-  border: 1px solid #444;
-  background: #1c1c1c;
-  color: inherit;
-}
-.form button {
-  cursor: pointer;
-  background: #eee;
-  color: #111;
-}
-.form button:disabled {
-  opacity: 0.6;
-}
-.form p {
-  margin: 0;
-}
-.form .error {
-  color: #f66;
-}
-.lang button {
-  background: none;
-  border: 1px solid transparent;
-  border-radius: 4px;
-  color: inherit;
-  font: inherit;
-  font-size: 13px;
-  padding: 2px 6px;
-  cursor: pointer;
-  opacity: 0.6;
-}
-.lang button[aria-pressed='true'] {
-  opacity: 1;
-  border-color: #555;
-}
-</style>

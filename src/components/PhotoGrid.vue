@@ -32,8 +32,18 @@ function open(e: MouseEvent, i: number) {
 <template>
   <MasonryGrid :items="items" :ratio="ratio">
     <template #default="{ item: p, index: i }">
-      <figure class="photo" itemprop="image" itemscope itemtype="https://schema.org/ImageObject">
-        <a :href="p.url" itemprop="contentUrl" @click="open($event, i)">
+      <figure
+        class="group relative overflow-hidden rounded-box"
+        itemprop="image"
+        itemscope
+        itemtype="https://schema.org/ImageObject"
+      >
+        <a
+          :href="p.url"
+          itemprop="contentUrl"
+          class="block focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+          @click="open($event, i)"
+        >
           <img
             :src="p.thumbUrl"
             :alt="alt(p, i)"
@@ -43,11 +53,13 @@ function open(e: MouseEvent, i: number) {
             :height="p.height"
             :data-pswp-index="i"
             itemprop="thumbnailUrl"
+            class="block h-auto w-full bg-base-300 transition-transform duration-300 group-hover:scale-[1.03]"
           />
         </a>
+        <!-- hidden until hover on mouse devices; always visible on touch and when favorited -->
         <button
           type="button"
-          class="fav"
+          class="btn btn-circle btn-sm absolute top-2 right-2 border-0 bg-black/45 text-lg text-white opacity-0 transition-opacity group-hover:opacity-100 focus-visible:opacity-100 aria-pressed:text-error aria-pressed:opacity-100 [@media(hover:none)]:opacity-100"
           :aria-pressed="p.isFavorite"
           :title="$t(p.isFavorite ? 'favorites.remove' : 'favorites.add')"
           :aria-label="$t(p.isFavorite ? 'favorites.remove' : 'favorites.add')"
@@ -61,53 +73,3 @@ function open(e: MouseEvent, i: number) {
     </template>
   </MasonryGrid>
 </template>
-
-<style scoped>
-.photo {
-  margin: 0;
-  position: relative;
-}
-.fav {
-  position: absolute;
-  top: 6px;
-  right: 6px;
-  width: 32px;
-  height: 32px;
-  border: 0;
-  border-radius: 50%;
-  background: rgb(0 0 0 / 0.45);
-  color: #fff;
-  font-size: 18px;
-  line-height: 1;
-  cursor: pointer;
-  opacity: 0;
-  transition: opacity 0.15s;
-}
-.fav[aria-pressed='true'] {
-  color: #f45;
-  opacity: 1;
-}
-.photo:hover .fav,
-.fav:focus-visible {
-  opacity: 1;
-}
-@media (hover: none) {
-  .fav {
-    opacity: 1;
-  }
-}
-.photo a {
-  display: block;
-  border-radius: 4px;
-}
-.photo a:focus-visible {
-  outline: 2px solid #fff;
-}
-.photo img {
-  width: 100%;
-  height: auto;
-  display: block;
-  border-radius: 4px;
-  background: #222;
-}
-</style>

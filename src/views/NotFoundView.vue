@@ -7,15 +7,11 @@ usePageMeta(() => ({ title: t('notFound.title') }))
 </script>
 
 <template>
-  <section class="hero" aria-labelledby="nf-title">
-    <h1 id="nf-title">{{ $t('notFound.title') }}</h1>
-    <RouterLink to="/galleries">{{ $t('home.cta') }}</RouterLink>
+  <section class="hero py-20" aria-labelledby="nf-title">
+    <div class="hero-content flex-col text-center">
+      <p class="text-8xl font-black text-base-content/20">404</p>
+      <h1 id="nf-title">{{ $t('notFound.title') }}</h1>
+      <RouterLink to="/galleries" class="btn btn-primary">{{ $t('home.cta') }}</RouterLink>
+    </div>
   </section>
 </template>
-
-<style scoped>
-.hero {
-  text-align: center;
-  padding: 80px 0;
-}
-</style>

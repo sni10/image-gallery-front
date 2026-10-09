@@ -22,6 +22,7 @@ const { items, total, loading, error, canRetry, empty, loadMore } = useInfiniteL
   getFavorites,
   false,
 )
+import ListStatus from '@/components/ListStatus.vue'
 </script>
 
 <template>
@@ -36,20 +37,12 @@ const { items, total, loading, error, canRetry, empty, loadMore } = useInfiniteL
   </section>
 
   <div ref="sentinel" />
-  <p v-if="loading" class="status" role="status">{{ $t('common.loading') }}</p>
-  <p v-if="empty" class="status" role="status">{{ $t('favorites.empty') }}</p>
-  <p v-if="error" class="status error" role="alert">
-    {{ error }}
-    <button v-if="canRetry" type="button" @click="loadMore">{{ $t('common.retry') }}</button>
-  </p>
+  <ListStatus
+    :loading="loading"
+    :empty="empty"
+    :empty-text="$t('favorites.empty')"
+    :error="error"
+    :can-retry="canRetry"
+    @retry="loadMore"
+  />
 </template>
-
-<style scoped>
-.status {
-  text-align: center;
-  margin: 24px 0;
-}
-.error {
-  color: #f66;
-}
-</style>

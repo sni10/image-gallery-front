@@ -36,8 +36,20 @@ onMounted(async () => {
 </script>
 
 <template>
-  <section class="form" aria-labelledby="confirm-title">
-    <h1 id="confirm-title">{{ $t('confirm.title') }}</h1>
-    <p :class="{ error: failed }" role="status">{{ message || $t('common.loading') }}</p>
+  <section class="card mx-auto my-8 max-w-md bg-base-200" aria-labelledby="confirm-title">
+    <div class="card-body">
+      <h1 id="confirm-title" class="card-title text-2xl">{{ $t('confirm.title') }}</h1>
+      <div
+        v-if="message"
+        class="alert"
+        :class="failed ? 'alert-error' : 'alert-success'"
+        role="status"
+      >
+        {{ message }}
+      </div>
+      <span v-else class="loading loading-spinner" role="status">
+        <span class="sr-only">{{ $t('common.loading') }}</span>
+      </span>
+    </div>
   </section>
 </template>

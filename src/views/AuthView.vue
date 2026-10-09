@@ -50,47 +50,67 @@ async function resend() {
 </script>
 
 <template>
-  <section class="form" aria-labelledby="auth-title">
-    <h1 id="auth-title">{{ title }}</h1>
+  <section class="card mx-auto my-8 max-w-md bg-base-200 shadow-xl" aria-labelledby="auth-title">
+    <div class="card-body gap-4">
+      <h1 id="auth-title" class="card-title mb-0 text-2xl">{{ title }}</h1>
 
-    <template v-if="sent">
-      <p role="status">{{ $t('auth.sent', { email }) }}</p>
-      <button type="button" @click="resend">{{ $t('auth.resend') }}</button>
-    </template>
+      <template v-if="sent">
+        <div class="alert alert-success" role="status">{{ $t('auth.sent', { email }) }}</div>
+        <button type="button" class="btn btn-outline" @click="resend">
+          {{ $t('auth.resend') }}
+        </button>
+      </template>
 
-    <form v-else @submit.prevent="submit">
-      <label>
-        {{ $t('auth.email') }}
-        <input v-model="email" type="email" required autocomplete="email" />
-      </label>
-      <p v-if="fields.email" class="error">{{ fields.email }}</p>
-      <label>
-        {{ $t('auth.password') }}
-        <input
-          v-model="password"
-          type="password"
-          required
-          :autocomplete="mode === 'login' ? 'current-password' : 'new-password'"
-        />
-      </label>
-      <p v-if="fields.password" class="error">{{ fields.password }}</p>
-      <p v-if="error" class="error" role="alert">{{ error }}</p>
-      <p v-if="unconfirmed" role="alert">
-        {{ $t('auth.unconfirmed') }}
-        <button type="button" @click="resend">{{ $t('auth.resend') }}</button>
+      <form v-else class="flex flex-col gap-2" @submit.prevent="submit">
+        <fieldset class="fieldset">
+          <label class="fieldset-legend" for="auth-email">{{ $t('auth.email') }}</label>
+          <input
+            id="auth-email"
+            v-model="email"
+            type="email"
+            required
+            autocomplete="email"
+            class="input w-full"
+            :class="{ 'input-error': fields.email }"
+          />
+          <p v-if="fields.email" class="label text-error">{{ fields.email }}</p>
+        </fieldset>
+        <fieldset class="fieldset">
+          <label class="fieldset-legend" for="auth-password">{{ $t('auth.password') }}</label>
+          <input
+            id="auth-password"
+            v-model="password"
+            type="password"
+            required
+            :autocomplete="mode === 'login' ? 'current-password' : 'new-password'"
+            class="input w-full"
+            :class="{ 'input-error': fields.password }"
+          />
+          <p v-if="fields.password" class="label text-error">{{ fields.password }}</p>
+        </fieldset>
+        <div v-if="error" class="alert alert-error" role="alert">{{ error }}</div>
+        <div v-if="unconfirmed" class="alert alert-warning" role="alert">
+          <span>{{ $t('auth.unconfirmed') }}</span>
+          <button type="button" class="btn btn-sm" @click="resend">{{ $t('auth.resend') }}</button>
+        </div>
+        <button class="btn btn-primary mt-2" :disabled="busy">
+          <span v-if="busy" class="loading loading-spinner loading-sm" />
+          {{ title }}
+        </button>
+      </form>
+
+      <p class="text-center text-sm">
+        <RouterLink
+          v-if="mode === 'login'"
+          :to="{ name: 'register', query: route.query }"
+          class="link link-primary"
+        >
+          {{ $t('auth.noAccount') }}
+        </RouterLink>
+        <RouterLink v-else :to="{ name: 'login', query: route.query }" class="link link-primary">
+          {{ $t('auth.haveAccount') }}
+        </RouterLink>
       </p>
-      <button :disabled="busy">{{ title }}</button>
-    </form>
-
-    <p v-if="mode === 'login'">
-      <RouterLink :to="{ name: 'register', query: route.query }">{{
-        $t('auth.noAccount')
-      }}</RouterLink>
-    </p>
-    <p v-else>
-      <RouterLink :to="{ name: 'login', query: route.query }">{{
-        $t('auth.haveAccount')
-      }}</RouterLink>
-    </p>
+    </div>
   </section>
 </template>

@@ -4,7 +4,7 @@ defineProps<{ items: { title: string; to?: string }[] }>()
 </script>
 
 <template>
-  <nav :aria-label="$t('gallery.breadcrumbs')" class="crumbs">
+  <nav :aria-label="$t('gallery.breadcrumbs')" class="breadcrumbs mb-2 text-sm">
     <ol itemscope itemtype="https://schema.org/BreadcrumbList">
       <li
         v-for="(c, i) in items"
@@ -14,7 +14,7 @@ defineProps<{ items: { title: string; to?: string }[] }>()
         itemtype="https://schema.org/ListItem"
         :aria-current="c.to ? undefined : 'page'"
       >
-        <RouterLink v-if="c.to" :to="c.to" itemprop="item">
+        <RouterLink v-if="c.to" :to="c.to" itemprop="item" class="text-base-content/70">
           <span itemprop="name">{{ c.title }}</span>
         </RouterLink>
         <span v-else itemprop="name">{{ c.title }}</span>
@@ -23,27 +23,3 @@ defineProps<{ items: { title: string; to?: string }[] }>()
     </ol>
   </nav>
 </template>
-
-<style scoped>
-.crumbs ol {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  font-size: 14px;
-}
-.crumbs li + li::before {
-  content: '/';
-  margin-right: 8px;
-  opacity: 0.5;
-}
-.crumbs a {
-  opacity: 0.7;
-  text-decoration: none;
-}
-.crumbs a:hover {
-  opacity: 1;
-}
-</style>

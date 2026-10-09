@@ -13,17 +13,22 @@ const { items, total, loading, error, canRetry, empty, loadMore } = useInfiniteL
   'home:photos',
   (page) => getRandomPhotos(seed.value, page),
 )
+import ListStatus from '@/components/ListStatus.vue'
 </script>
 
 <template>
-  <section class="hero" aria-labelledby="home-title">
-    <h1 id="home-title">{{ $t('site.name') }}</h1>
-    <p>{{ $t('home.tagline') }}</p>
-    <RouterLink to="/galleries" class="btn">{{ $t('home.cta') }}</RouterLink>
+  <section class="hero py-12" aria-labelledby="home-title">
+    <div class="hero-content text-center">
+      <div class="max-w-xl">
+        <h1 id="home-title" class="text-5xl">{{ $t('site.name') }}</h1>
+        <p class="text-lg text-base-content/70">{{ $t('home.tagline') }}</p>
+        <RouterLink to="/galleries" class="btn btn-primary mt-6">{{ $t('home.cta') }}</RouterLink>
+      </div>
+    </div>
   </section>
 
   <section aria-labelledby="home-photos" itemscope itemtype="https://schema.org/CollectionPage">
-    <h2 id="home-photos" itemprop="name">{{ $t('home.photos') }}</h2>
+    <h2 id="home-photos" class="mb-4" itemprop="name">{{ $t('home.photos') }}</h2>
     <PhotoGrid
       :items="items"
       :total="total"
@@ -33,33 +38,12 @@ const { items, total, loading, error, canRetry, empty, loadMore } = useInfiniteL
   </section>
 
   <div ref="sentinel" />
-  <p v-if="loading" class="status" role="status">{{ $t('common.loading') }}</p>
-  <p v-if="empty" class="status" role="status">{{ $t('home.empty') }}</p>
-  <p v-if="error" class="status error" role="alert">
-    {{ error }}
-    <button v-if="canRetry" type="button" @click="loadMore">{{ $t('common.retry') }}</button>
-  </p>
+  <ListStatus
+    :loading="loading"
+    :empty="empty"
+    :empty-text="$t('home.empty')"
+    :error="error"
+    :can-retry="canRetry"
+    @retry="loadMore"
+  />
 </template>
-
-<style scoped>
-.hero {
-  text-align: center;
-  padding: 48px 0;
-}
-.btn {
-  display: inline-block;
-  margin-top: 16px;
-  padding: 12px 24px;
-  border-radius: 8px;
-  background: #eee;
-  color: #111;
-  text-decoration: none;
-}
-.status {
-  text-align: center;
-  margin: 24px 0;
-}
-.error {
-  color: #f66;
-}
-</style>

@@ -47,6 +47,7 @@ const { items, loading, error, canRetry, empty, loadMore } = useInfiniteList(
   (page) => getGalleries(page, 20, props.slug),
 )
 const ratio = (g: Gallery) => (g.cover ? g.cover.height / g.cover.width : 2 / 3)
+import ListStatus from '@/components/ListStatus.vue'
 </script>
 
 <template>
@@ -59,12 +60,16 @@ const ratio = (g: Gallery) => (g.cover ? g.cover.height / g.cover.width : 2 / 3)
     <MasonryGrid v-if="!unknown" :items="items" :ratio="ratio" :min-width="280">
       <template #default="{ item: g }">
         <article
-          class="card"
+          class="group overflow-hidden rounded-box shadow-md"
           itemprop="hasPart"
           itemscope
           itemtype="https://schema.org/ImageGallery"
         >
-          <RouterLink :to="`/galleries/${g.id}`" class="link" itemprop="url">
+          <RouterLink
+            :to="`/galleries/${g.id}`"
+            class="relative block focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+            itemprop="url"
+          >
             <img
               v-if="g.cover"
               :src="g.cover.thumbUrl"
@@ -74,13 +79,20 @@ const ratio = (g: Gallery) => (g.cover ? g.cover.height / g.cover.width : 2 / 3)
               :width="g.cover.width"
               :height="g.cover.height"
               itemprop="thumbnailUrl"
+              class="block h-auto w-full bg-base-300 transition-transform duration-300 group-hover:scale-[1.03]"
             />
-            <div v-else class="empty" />
+            <div v-else class="aspect-[3/2] bg-base-300" />
             <!-- category label only on the all-galleries page -->
-            <span v-if="!slug" class="tag" itemprop="genre">{{ g.category.title }}</span>
-            <div class="caption">
-              <h2 itemprop="name">{{ g.title }}</h2>
-              <p class="count">{{ $t('catalog.photos', g.photosCount) }}</p>
+            <span v-if="!slug" class="badge badge-neutral absolute top-2 left-2" itemprop="genre">
+              {{ g.category.title }}
+            </span>
+            <div
+              class="absolute inset-x-0 bottom-0 flex items-baseline justify-between gap-2 bg-gradient-to-t from-black/80 to-transparent px-3 pt-8 pb-3 text-white"
+            >
+              <h2 class="text-base" itemprop="name">{{ g.title }}</h2>
+              <p class="text-sm whitespace-nowrap opacity-80">
+                {{ $t('catalog.photos', g.photosCount) }}
+              </p>
             </div>
           </RouterLink>
         </article>
@@ -90,79 +102,16 @@ const ratio = (g: Gallery) => (g.cover ? g.cover.height / g.cover.width : 2 / 3)
 
   <template v-if="!unknown">
     <div ref="sentinel" />
-    <p v-if="loading" class="status" role="status">{{ $t('common.loading') }}</p>
-    <p v-if="empty" class="status" role="status">{{ $t('catalog.empty') }}</p>
-    <p v-if="error" class="status error" role="alert">
-      {{ error }}
-      <button v-if="canRetry" type="button" @click="loadMore">{{ $t('common.retry') }}</button>
-    </p>
+    <ListStatus
+      :loading="loading"
+      :empty="empty"
+      :empty-text="$t('catalog.empty')"
+      :error="error"
+      :can-retry="canRetry"
+      @retry="loadMore"
+    />
   </template>
-  <p v-else class="status">
-    <RouterLink to="/galleries">{{ $t('gallery.back') }}</RouterLink>
+  <p v-else class="my-8 text-center">
+    <RouterLink to="/galleries" class="btn btn-ghost">{{ $t('gallery.back') }}</RouterLink>
   </p>
 </template>
-
-<style scoped>
-.card {
-  border-radius: 4px;
-  overflow: hidden;
-}
-.link {
-  position: relative;
-  display: block;
-  text-decoration: none;
-}
-.link:focus-visible {
-  outline: 2px solid #fff;
-}
-.link img {
-  width: 100%;
-  height: auto;
-  display: block;
-  background: #222;
-  transition: transform 0.3s;
-}
-.link:hover img {
-  transform: scale(1.03);
-}
-.empty {
-  aspect-ratio: 3 / 2;
-  background: #222;
-}
-.tag {
-  position: absolute;
-  top: 8px;
-  left: 8px;
-  padding: 2px 8px;
-  border-radius: 4px;
-  background: rgb(0 0 0 / 0.6);
-  font-size: 12px;
-}
-.caption {
-  position: absolute;
-  inset: auto 0 0;
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  gap: 8px;
-  padding: 24px 12px 10px;
-  background: linear-gradient(transparent, rgb(0 0 0 / 0.75));
-}
-.caption h2 {
-  margin: 0;
-  font-size: 1rem;
-  font-weight: 600;
-}
-.count {
-  margin: 0;
-  white-space: nowrap;
-  opacity: 0.8;
-}
-.status {
-  text-align: center;
-  margin: 24px 0;
-}
-.error {
-  color: #f66;
-}
-</style>

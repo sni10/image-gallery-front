@@ -42,156 +42,133 @@ async function signOut() {
 </script>
 
 <template>
-  <section class="form account" aria-labelledby="account-title">
-    <h1 id="account-title">{{ $t('account.title') }}</h1>
+  <section class="mx-auto my-4 grid max-w-xl gap-4" aria-labelledby="account-title">
+    <h1 id="account-title" class="mb-0">{{ $t('account.title') }}</h1>
 
-    <div v-if="me" class="card profile">
-      <span class="avatar" aria-hidden="true">{{ me.email[0]?.toUpperCase() }}</span>
-      <div class="who">
-        <strong>{{ me.email }}</strong>
-        <span class="muted">
-          {{ $t('account.joined', { date: new Date(me.dateJoined).toLocaleDateString(locale) }) }}
-        </span>
-      </div>
-      <div class="actions">
-        <RouterLink class="btn" to="/account/favorites">{{ $t('favorites.title') }}</RouterLink>
-        <button type="button" class="btn danger" @click="signOut">
-          {{ $t('account.logout') }}
-        </button>
+    <div v-if="me" class="card bg-base-200">
+      <div class="card-body flex-row flex-wrap items-center gap-4">
+        <div class="avatar avatar-placeholder">
+          <div class="w-12 rounded-full bg-primary text-primary-content">
+            <span class="text-xl" aria-hidden="true">{{ me.email[0]?.toUpperCase() }}</span>
+          </div>
+        </div>
+        <div class="grid min-w-0 flex-1 gap-0.5">
+          <strong class="truncate">{{ me.email }}</strong>
+          <span class="text-sm text-base-content/60">
+            {{ $t('account.joined', { date: new Date(me.dateJoined).toLocaleDateString(locale) }) }}
+          </span>
+        </div>
+        <div class="flex w-full gap-2">
+          <RouterLink class="btn flex-1" to="/account/favorites">
+            ♥ {{ $t('favorites.title') }}
+          </RouterLink>
+          <button type="button" class="btn btn-outline btn-error flex-1" @click="signOut">
+            {{ $t('account.logout') }}
+          </button>
+        </div>
       </div>
     </div>
-    <p v-else class="card" role="status">{{ $t('common.loading') }}</p>
+    <div v-else class="card bg-base-200" role="status">
+      <div class="card-body items-center">
+        <span class="loading loading-spinner" />
+        <span class="sr-only">{{ $t('common.loading') }}</span>
+      </div>
+    </div>
 
-    <form class="card" @submit.prevent="emailForm.submit">
-      <h2>{{ $t('account.changeEmail') }}</h2>
-      <label>
-        {{ $t('account.newEmail') }}
-        <input v-model="newEmail" type="email" required autocomplete="email" />
-        <span v-if="emailForm.fields.value.newEmail" class="error">
-          {{ emailForm.fields.value.newEmail }}
-        </span>
-      </label>
-      <label>
-        {{ $t('auth.password') }}
-        <input v-model="emailPassword" type="password" required autocomplete="current-password" />
-        <span v-if="emailForm.fields.value.password" class="error">
-          {{ emailForm.fields.value.password }}
-        </span>
-      </label>
-      <p v-if="emailForm.error.value" class="error" role="alert">{{ emailForm.error.value }}</p>
-      <p v-if="emailSentTo" class="ok" role="status">
-        {{ $t('account.emailSent', { email: emailSentTo }) }}
-      </p>
-      <button :disabled="emailForm.busy.value">{{ $t('account.save') }}</button>
+    <form class="card bg-base-200" @submit.prevent="emailForm.submit">
+      <div class="card-body gap-2">
+        <h2 class="card-title">{{ $t('account.changeEmail') }}</h2>
+        <fieldset class="fieldset">
+          <label class="fieldset-legend" for="new-email">{{ $t('account.newEmail') }}</label>
+          <input
+            id="new-email"
+            v-model="newEmail"
+            type="email"
+            required
+            autocomplete="email"
+            class="input w-full"
+            :class="{ 'input-error': emailForm.fields.value.newEmail }"
+          />
+          <p v-if="emailForm.fields.value.newEmail" class="label text-error">
+            {{ emailForm.fields.value.newEmail }}
+          </p>
+        </fieldset>
+        <fieldset class="fieldset">
+          <label class="fieldset-legend" for="email-password">{{ $t('auth.password') }}</label>
+          <input
+            id="email-password"
+            v-model="emailPassword"
+            type="password"
+            required
+            autocomplete="current-password"
+            class="input w-full"
+            :class="{ 'input-error': emailForm.fields.value.password }"
+          />
+          <p v-if="emailForm.fields.value.password" class="label text-error">
+            {{ emailForm.fields.value.password }}
+          </p>
+        </fieldset>
+        <div v-if="emailForm.error.value" class="alert alert-error" role="alert">
+          {{ emailForm.error.value }}
+        </div>
+        <div v-if="emailSentTo" class="alert alert-success" role="status">
+          {{ $t('account.emailSent', { email: emailSentTo }) }}
+        </div>
+        <div class="card-actions justify-end">
+          <button class="btn btn-primary" :disabled="emailForm.busy.value">
+            {{ $t('account.save') }}
+          </button>
+        </div>
+      </div>
     </form>
 
-    <form class="card" @submit.prevent="passwordForm.submit">
-      <h2>{{ $t('account.changePassword') }}</h2>
-      <label>
-        {{ $t('account.currentPassword') }}
-        <input v-model="currentPassword" type="password" required autocomplete="current-password" />
-        <span v-if="passwordForm.fields.value.currentPassword" class="error">
-          {{ passwordForm.fields.value.currentPassword }}
-        </span>
-      </label>
-      <label>
-        {{ $t('account.newPassword') }}
-        <input v-model="newPassword" type="password" required autocomplete="new-password" />
-        <span v-if="passwordForm.fields.value.newPassword" class="error">
-          {{ passwordForm.fields.value.newPassword }}
-        </span>
-      </label>
-      <p v-if="passwordForm.error.value" class="error" role="alert">
-        {{ passwordForm.error.value }}
-      </p>
-      <p v-if="passwordDone" class="ok" role="status">{{ $t('account.passwordChanged') }}</p>
-      <button :disabled="passwordForm.busy.value">{{ $t('account.save') }}</button>
+    <form class="card bg-base-200" @submit.prevent="passwordForm.submit">
+      <div class="card-body gap-2">
+        <h2 class="card-title">{{ $t('account.changePassword') }}</h2>
+        <fieldset class="fieldset">
+          <label class="fieldset-legend" for="current-password">{{
+            $t('account.currentPassword')
+          }}</label>
+          <input
+            id="current-password"
+            v-model="currentPassword"
+            type="password"
+            required
+            autocomplete="current-password"
+            class="input w-full"
+            :class="{ 'input-error': passwordForm.fields.value.currentPassword }"
+          />
+          <p v-if="passwordForm.fields.value.currentPassword" class="label text-error">
+            {{ passwordForm.fields.value.currentPassword }}
+          </p>
+        </fieldset>
+        <fieldset class="fieldset">
+          <label class="fieldset-legend" for="new-password">{{ $t('account.newPassword') }}</label>
+          <input
+            id="new-password"
+            v-model="newPassword"
+            type="password"
+            required
+            autocomplete="new-password"
+            class="input w-full"
+            :class="{ 'input-error': passwordForm.fields.value.newPassword }"
+          />
+          <p v-if="passwordForm.fields.value.newPassword" class="label text-error">
+            {{ passwordForm.fields.value.newPassword }}
+          </p>
+        </fieldset>
+        <div v-if="passwordForm.error.value" class="alert alert-error" role="alert">
+          {{ passwordForm.error.value }}
+        </div>
+        <div v-if="passwordDone" class="alert alert-success" role="status">
+          {{ $t('account.passwordChanged') }}
+        </div>
+        <div class="card-actions justify-end">
+          <button class="btn btn-primary" :disabled="passwordForm.busy.value">
+            {{ $t('account.save') }}
+          </button>
+        </div>
+      </div>
     </form>
   </section>
 </template>
-
-<style scoped>
-.account {
-  max-width: 480px;
-  display: grid;
-  gap: 16px;
-}
-.account h1 {
-  margin: 0 0 4px;
-}
-.card {
-  margin: 0;
-  padding: 20px;
-  border: 1px solid #2a2a2a;
-  border-radius: 12px;
-  background: #161616;
-}
-form.card {
-  margin-bottom: 0;
-  gap: 14px;
-}
-.card h2 {
-  margin: 0;
-  font-size: 18px;
-}
-.profile {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 16px;
-}
-.avatar {
-  flex: none;
-  width: 48px;
-  height: 48px;
-  border-radius: 50%;
-  display: grid;
-  place-items: center;
-  background: #2a2a2a;
-  font-size: 20px;
-  font-weight: 600;
-}
-.who {
-  flex: 1;
-  min-width: 0;
-  display: grid;
-  gap: 2px;
-}
-.who strong {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-.muted {
-  font-size: 14px;
-  opacity: 0.6;
-}
-.actions {
-  display: flex;
-  gap: 8px;
-  width: 100%;
-}
-.form .actions .btn {
-  flex: 1;
-  text-align: center;
-  text-decoration: none;
-  font-size: 14px;
-  padding: 8px 12px;
-  border-radius: 6px;
-  border: 1px solid #444;
-  background: #1c1c1c;
-  color: inherit;
-}
-.form .actions .btn:hover {
-  border-color: #777;
-}
-.form .actions .danger {
-  color: #f88;
-}
-label .error {
-  font-size: 13px;
-}
-.ok {
-  color: #6c6;
-}
-</style>

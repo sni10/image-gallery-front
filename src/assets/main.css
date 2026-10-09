@@ -1,0 +1,15 @@
+/* Tailwind 4 + daisyUI 5. Components (btn, card, navbar, menu…) come from daisyUI, layout from Tailwind utilities. */
+@import 'tailwindcss';
+@plugin 'daisyui' {
+  /* dark suits photos; one theme = no flash of the wrong theme on the server-rendered page */
+  themes: dark --default;
+}
+
+@layer base {
+  h1 {
+    @apply mb-4 text-3xl font-bold tracking-tight;
+  }
+  h2 {
+    @apply text-xl font-semibold;
+  }
+}
