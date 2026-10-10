@@ -25,6 +25,13 @@ export interface Gallery {
   cover: Photo | null // random photo of the gallery, new on each request; null if empty
 }
 
+// GET /photos/{id}: the photo page
+export interface PhotoDetail extends Photo {
+  description: string
+  tags: string[]
+  gallery: Pick<Gallery, 'id' | 'title' | 'category'>
+}
+
 export interface Page<T> {
   items: T[]
   total: number
@@ -153,6 +160,8 @@ export const getGallery = (id: string) => get<Gallery>(`/galleries/${encodeURICo
 
 export const getGalleryPhotos = (id: string, page = 1, limit = 20) =>
   get<Page<Photo>>(`/galleries/${encodeURIComponent(id)}/photos?page=${page}&limit=${limit}`)
+
+export const getPhoto = (id: string) => get<PhotoDetail>(`/photos/${encodeURIComponent(id)}`)
 
 // Photos of all galleries in random order; same seed = stable order across pages.
 export const getRandomPhotos = (seed: string, page = 1, limit = 20) =>

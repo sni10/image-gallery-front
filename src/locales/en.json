@@ -38,7 +38,8 @@
     "zoom": "Zoom",
     "prev": "Previous",
     "next": "Next",
-    "loadError": "Could not load the photo"
+    "loadError": "Could not load the photo",
+    "page": "Photo page"
   },
   "common": {
     "loading": "Loading…",
@@ -93,6 +94,7 @@
   },
   "photo": {
     "delete": "Delete photo",
-    "deleteConfirm": "Delete this photo for good?"
+    "deleteConfirm": "Delete this photo for good?",
+    "description": "Photo \"{title}\" from the gallery \"{gallery}\""
   }
 }

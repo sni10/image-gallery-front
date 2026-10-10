@@ -6,6 +6,7 @@ const prod = process.argv.includes('--prod') || process.env.NODE_ENV === 'produc
 const port = Number(process.env.PORT) || 5173 // 5173: the origin the API allows via CORS
 
 const app = express()
+app.set('trust proxy', 1) // Caddy in front: req.protocol/host come from X-Forwarded-*
 let vite
 let template = ''
 
@@ -35,7 +36,7 @@ app.use('*all', async (req, res) => {
       render = (await vite.ssrLoadModule('/src/entry-server.ts')).render
     }
 
-    const r = await render(url, req.headers.cookie)
+    const r = await render(url, req.headers.cookie, `${req.protocol}://${req.get('host')}`)
     const html = tpl
       .replace('__APP_LANG__', r.lang)
       .replace('<!--app-head-->', r.head)
