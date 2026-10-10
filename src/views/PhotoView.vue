@@ -34,8 +34,28 @@ function onKey(e: KeyboardEvent) {
   if (e.altKey || e.ctrlKey || e.metaKey || e.shiftKey) return
   const el = e.target
   if (el instanceof Element && el.closest('input, textarea, select, [contenteditable]')) return
-  const id = { ArrowLeft: photo.value?.prevId, ArrowRight: photo.value?.nextId }[e.key]
+  go({ ArrowLeft: photo.value?.prevId, ArrowRight: photo.value?.nextId }[e.key])
+}
+function go(id?: string | null) {
   if (id) router.push(`/photos/${id}`)
+}
+
+const arrow =
+  'btn btn-circle btn-lg border-0 bg-black/45 text-3xl text-white transition group-hover:bg-black/75 group-focus-visible:ring-2 group-focus-visible:ring-white'
+
+// horizontal swipe on touch screens; mostly-vertical moves stay page scroll
+const SWIPE = 50 // px
+let touchX = 0
+let touchY = 0
+function onTouchStart(e: TouchEvent) {
+  touchX = e.changedTouches[0]!.clientX
+  touchY = e.changedTouches[0]!.clientY
+}
+function onTouchEnd(e: TouchEvent) {
+  const dx = e.changedTouches[0]!.clientX - touchX
+  const dy = e.changedTouches[0]!.clientY - touchY
+  if (Math.abs(dx) < SWIPE || Math.abs(dx) < Math.abs(dy) * 1.5) return
+  go(dx > 0 ? photo.value?.prevId : photo.value?.nextId)
 }
 onMounted(() => window.addEventListener('keydown', onKey))
 onUnmounted(() => window.removeEventListener('keydown', onKey))
@@ -71,7 +91,7 @@ const crumbs = computed(() => {
 
   <figure v-if="photo" itemscope itemtype="https://schema.org/ImageObject">
     <h1 class="sr-only" itemprop="name">{{ photo.title }}</h1>
-    <div class="relative">
+    <div class="relative" @touchstart.passive="onTouchStart" @touchend.passive="onTouchEnd">
       <img
         :src="photo.url"
         :alt="photo.title"
@@ -80,24 +100,27 @@ const crumbs = computed(() => {
         itemprop="contentUrl"
         class="mx-auto block h-auto max-h-[85vh] w-auto max-w-full rounded-box bg-base-300"
       />
+      <!-- click zones: a third of the width each, full height; the circle is only the visual cue -->
       <RouterLink
         v-if="photo.prevId"
         :to="`/photos/${photo.prevId}`"
         rel="prev"
-        class="btn btn-circle absolute top-1/2 left-2 -translate-y-1/2 border-0 bg-black/45 text-xl text-white"
+        class="group absolute inset-y-0 left-0 flex w-1/3 items-center justify-start pl-3 outline-none"
         :title="$t('photo.prev')"
         :aria-label="$t('photo.prev')"
-        >‹</RouterLink
       >
+        <span :class="arrow" aria-hidden="true">‹</span>
+      </RouterLink>
       <RouterLink
         v-if="photo.nextId"
         :to="`/photos/${photo.nextId}`"
         rel="next"
-        class="btn btn-circle absolute top-1/2 right-2 -translate-y-1/2 border-0 bg-black/45 text-xl text-white"
+        class="group absolute inset-y-0 right-0 flex w-1/3 items-center justify-end pr-3 outline-none"
         :title="$t('photo.next')"
         :aria-label="$t('photo.next')"
-        >›</RouterLink
       >
+        <span :class="arrow" aria-hidden="true">›</span>
+      </RouterLink>
     </div>
     <!-- ponytail: plain badges for now; will link to photos by tag once the API has that list -->
     <ul v-if="photo.tags.length" class="mt-4 flex flex-wrap gap-2" :aria-label="$t('photo.tags')">
