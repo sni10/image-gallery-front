@@ -33,7 +33,7 @@ import ListStatus from '@/components/ListStatus.vue'
       :items="items"
       :total="total"
       :load-more="loadMore"
-      :guest-free="0"
+      :guest-free="10"
       @delete="remove"
       :alt="(_, i) => $t('home.photoAlt', { n: i + 1 })"
     />
