@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { computed, onMounted, onServerPrefetch, ref, useSSRContext } from 'vue'
+import { computed, onMounted, onServerPrefetch, onUnmounted, ref, useSSRContext } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useRouter } from 'vue-router'
 import { ApiError, getPhoto, type PhotoDetail } from '@/api'
 import { errorMessage } from '@/i18n'
 import { usePageMeta } from '@/composables/usePageMeta'
@@ -26,6 +27,18 @@ async function load() {
 }
 onServerPrefetch(load)
 onMounted(load)
+
+// ←/→ = the arrow links; not while typing or with modifiers (browser shortcuts)
+const router = useRouter()
+function onKey(e: KeyboardEvent) {
+  if (e.altKey || e.ctrlKey || e.metaKey || e.shiftKey) return
+  const el = e.target
+  if (el instanceof Element && el.closest('input, textarea, select, [contenteditable]')) return
+  const id = { ArrowLeft: photo.value?.prevId, ArrowRight: photo.value?.nextId }[e.key]
+  if (id) router.push(`/photos/${id}`)
+}
+onMounted(() => window.addEventListener('keydown', onKey))
+onUnmounted(() => window.removeEventListener('keydown', onKey))
 
 usePageMeta(() => {
   const p = photo.value
