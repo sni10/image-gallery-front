@@ -7,10 +7,11 @@ import { useRouter } from 'vue-router'
 
 const PREFETCH = 5 // start loading next page when this close to the end of loaded photos
 const WHEEL_LOCK = 350 // ms between wheel-driven slide changes
+// icons paint with --pswp-icon-color: .pswp__icn sets its own `color` (grey), so currentColor never sees the button's
 const HEART =
-  '<svg class="pswp__icn" viewBox="0 0 24 24" width="24" height="24" style="fill:currentColor"><path d="M12 21s-7.5-4.6-9.5-9.2C1.2 8.6 3.2 5 6.6 5c2 0 3.4 1.1 4.4 2.5C12 6.1 13.4 5 15.4 5c3.4 0 5.4 3.6 4.1 6.8C19.5 16.4 12 21 12 21z"/></svg>'
+  '<svg class="pswp__icn" viewBox="0 0 24 24" width="24" height="24"><path d="M12 21s-7.5-4.6-9.5-9.2C1.2 8.6 3.2 5 6.6 5c2 0 3.4 1.1 4.4 2.5C12 6.1 13.4 5 15.4 5c3.4 0 5.4 3.6 4.1 6.8C19.5 16.4 12 21 12 21z"/></svg>'
 const LINK =
-  '<svg class="pswp__icn" viewBox="0 0 24 24" width="24" height="24" style="fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/></svg>'
+  '<svg class="pswp__icn" viewBox="0 0 24 24" width="24" height="24" style="fill:none;stroke:var(--pswp-icon-color);stroke-width:2;stroke-linecap:round"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/></svg>'
 const pending = (text: string) =>
   `<div style="display:grid;place-items:center;height:100%;color:#aaa">${text}</div>`
 
@@ -79,7 +80,7 @@ export function useLightbox(
           sync = () => {
             const ph = photos.value[p.currIndex]
             el.style.visibility = ph ? '' : 'hidden'
-            el.style.color = ph?.isFavorite ? '#f45' : ''
+            el.style.setProperty('--pswp-icon-color', ph?.isFavorite ? '#f45' : '#fff')
             el.title = t(ph?.isFavorite ? 'favorites.remove' : 'favorites.add')
             el.setAttribute('aria-pressed', String(!!ph?.isFavorite))
           }
