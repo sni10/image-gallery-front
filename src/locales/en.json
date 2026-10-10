@@ -90,5 +90,9 @@
     "photoAlt": "Favorites — photo {n}",
     "add": "Add to favorites",
     "remove": "Remove from favorites"
+  },
+  "photo": {
+    "delete": "Delete photo",
+    "deleteConfirm": "Delete this photo for good?"
   }
 }

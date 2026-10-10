@@ -49,7 +49,7 @@ const crumbs = computed(() => {
   ]
 })
 
-const { items, total, loading, error, canRetry, empty, loadMore } = useInfiniteList(
+const { items, total, loading, error, canRetry, empty, loadMore, remove } = useInfiniteList(
   `photos:${props.id}`,
   (page) => getGalleryPhotos(props.id, page),
 )
@@ -66,6 +66,7 @@ import ListStatus from '@/components/ListStatus.vue'
       :items="items"
       :total="total"
       :load-more="loadMore"
+      @delete="remove"
       :alt="(_, i) => $t('gallery.photoAlt', { gallery: gallery?.title ?? '', n: i + 1 })"
     />
   </article>
