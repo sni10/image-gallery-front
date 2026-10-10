@@ -40,8 +40,9 @@ function go(id?: string | null) {
   if (id) router.push(`/photos/${id}`)
 }
 
+// frosted circle; on mouse devices it fades in only while the zone is hovered, touch keeps it visible
 const arrow =
-  'btn btn-circle btn-lg border-0 bg-black/45 text-3xl text-white transition group-hover:bg-black/75 group-focus-visible:ring-2 group-focus-visible:ring-white'
+  'grid size-12 place-items-center rounded-full bg-black/30 text-white shadow-lg ring-1 ring-white/20 backdrop-blur-md transition duration-200 group-hover:scale-110 group-hover:bg-black/55 group-focus-visible:opacity-100 group-focus-visible:ring-2 group-focus-visible:ring-white [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:group-hover:opacity-100'
 
 // horizontal swipe on touch screens; mostly-vertical moves stay page scroll
 const SWIPE = 50 // px
@@ -109,7 +110,11 @@ const crumbs = computed(() => {
         :title="$t('photo.prev')"
         :aria-label="$t('photo.prev')"
       >
-        <span :class="arrow" aria-hidden="true">‹</span>
+        <span :class="arrow" aria-hidden="true">
+          <svg viewBox="0 0 24 24" class="size-6 fill-none stroke-current stroke-2 [stroke-linecap:round] [stroke-linejoin:round]">
+            <path d="M15 5l-7 7 7 7" />
+          </svg>
+        </span>
       </RouterLink>
       <RouterLink
         v-if="photo.nextId"
@@ -119,7 +124,11 @@ const crumbs = computed(() => {
         :title="$t('photo.next')"
         :aria-label="$t('photo.next')"
       >
-        <span :class="arrow" aria-hidden="true">›</span>
+        <span :class="arrow" aria-hidden="true">
+          <svg viewBox="0 0 24 24" class="size-6 fill-none stroke-current stroke-2 [stroke-linecap:round] [stroke-linejoin:round]">
+            <path d="M9 5l7 7-7 7" />
+          </svg>
+        </span>
       </RouterLink>
     </div>
     <!-- ponytail: plain badges for now; will link to photos by tag once the API has that list -->
