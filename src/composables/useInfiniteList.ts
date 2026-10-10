@@ -78,5 +78,12 @@ export function useInfiniteList<T extends { id: string }>(
   })
   onUnmounted(() => observer?.disconnect())
 
-  return { items, total, loading, error, canRetry, empty, loadMore }
+  // ponytail: later pages are offset-based, so the next page may skip one photo per removal until reload
+  function remove(id: string) {
+    const before = items.value.length
+    items.value = items.value.filter((i) => i.id !== id)
+    if (items.value.length < before) total.value--
+  }
+
+  return { items, total, loading, error, canRetry, empty, loadMore, remove }
 }

@@ -9,7 +9,7 @@ usePageMeta(() => ({}))
 
 // one seed per visit (made on the server, reused by the client) = stable random order while scrolling
 const seed = useSsrState('home:seed', () => Math.random().toString(36).slice(2, 12) || 'seed')
-const { items, total, loading, error, canRetry, empty, loadMore } = useInfiniteList(
+const { items, total, loading, error, canRetry, empty, loadMore, remove } = useInfiniteList(
   'home:photos',
   (page) => getRandomPhotos(seed.value, page),
 )
@@ -33,6 +33,7 @@ import ListStatus from '@/components/ListStatus.vue'
       :items="items"
       :total="total"
       :load-more="loadMore"
+      @delete="remove"
       :alt="(_, i) => $t('home.photoAlt', { n: i + 1 })"
     />
   </section>

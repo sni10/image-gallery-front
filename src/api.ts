@@ -34,6 +34,7 @@ export interface Me {
   id: string
   email: string
   dateJoined: string
+  isAdmin: boolean // staff: may delete photos
 }
 
 interface Tokens {
@@ -198,6 +199,10 @@ export async function logout() {
 
 export const setFavorite = (photoId: string, on: boolean) =>
   request<void>(on ? 'PUT' : 'DELETE', `/me/favorites/${encodeURIComponent(photoId)}`)
+
+// admin only; for good: files too. 404 = already gone
+export const deletePhoto = (id: string) =>
+  request<void>('DELETE', `/photos/${encodeURIComponent(id)}`)
 
 // recently added first
 export const getFavorites = (page = 1, limit = 20) =>

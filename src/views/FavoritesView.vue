@@ -17,7 +17,7 @@ onMounted(() => {
 })
 
 // client-only: the server has no token. Un-hearted photos stay until reload (undo by clicking again)
-const { items, total, loading, error, canRetry, empty, loadMore } = useInfiniteList(
+const { items, total, loading, error, canRetry, empty, loadMore, remove } = useInfiniteList(
   'favorites',
   getFavorites,
   false,
@@ -32,6 +32,7 @@ import ListStatus from '@/components/ListStatus.vue'
       :items="items"
       :total="total"
       :load-more="loadMore"
+      @delete="remove"
       :alt="(_, i) => $t('favorites.photoAlt', { n: i + 1 })"
     />
   </section>
