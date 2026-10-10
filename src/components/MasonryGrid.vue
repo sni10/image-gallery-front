@@ -33,7 +33,8 @@ const columns = computed(() => {
   return out
 })
 
-const fit = (width: number) => Math.max(1, Math.floor((width + GAP) / (props.minWidth + GAP)))
+// at least 2 columns: phones get two narrower columns instead of one wide
+const fit = (width: number) => Math.max(2, Math.floor((width + GAP) / (props.minWidth + GAP)))
 
 onMounted(() => {
   cols.value = fit(grid.value!.clientWidth)
@@ -46,6 +47,7 @@ onUnmounted(() => resize?.disconnect())
 
 <template>
   <div ref="grid">
+    <!-- before mount: CSS columns; 50vw - 20px = half of the phone width minus main padding and GAP -->
     <!-- gap-2 = 8px = GAP -->
     <div v-if="measured" class="flex items-start gap-2">
       <ul v-for="(col, c) in columns" :key="c" class="flex min-w-0 flex-1 flex-col gap-2">
@@ -54,7 +56,7 @@ onUnmounted(() => resize?.disconnect())
         </li>
       </ul>
     </div>
-    <ul v-else class="gap-x-2" :style="{ columnWidth: `${minWidth}px` }">
+    <ul v-else class="gap-x-2" :style="{ columnWidth: `min(${minWidth}px, calc(50vw - 20px))` }">
       <li v-for="(item, index) in items" :key="item.id" class="mb-2 break-inside-avoid">
         <slot :item="item" :index="index" />
       </li>

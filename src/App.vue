@@ -25,7 +25,7 @@ function setLocale(l: Locale) {
 
 <template>
   <header class="sticky top-0 z-10 border-b border-base-300 bg-base-100/90 backdrop-blur">
-    <nav class="navbar mx-auto max-w-7xl gap-2 px-4">
+    <nav class="navbar mx-auto max-w-[120rem] gap-2 px-4">
       <!-- phones: everything behind a burger; md and up: the horizontal menu below -->
       <details ref="mobileMenu" class="dropdown md:hidden">
         <summary class="btn btn-ghost btn-square" :aria-label="$t('nav.menu')">
@@ -136,7 +136,7 @@ function setLocale(l: Locale) {
       </div>
     </nav>
   </header>
-  <main class="mx-auto max-w-7xl p-4">
+  <main class="mx-auto max-w-[120rem] p-4">
     <!-- key: /galleries/1 -> /galleries/2 remounts instead of reusing stale state -->
     <RouterView :key="$route.fullPath" />
   </main>
