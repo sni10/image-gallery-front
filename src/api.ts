@@ -30,6 +30,9 @@ export interface PhotoDetail extends Photo {
   description: string
   tags: string[]
   gallery: Pick<Gallery, 'id' | 'title' | 'category'>
+  // neighbours in the gallery's order (newest first); null at the ends. Optional: older API lacks them
+  prevId?: string | null
+  nextId?: string | null
 }
 
 export interface Page<T> {

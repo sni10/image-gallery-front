@@ -1,0 +1,7 @@
+User-agent: *
+Disallow: /account
+Disallow: /login
+Disallow: /register
+Disallow: /confirm-email
+
+Sitemap: https://artai.win/sitemap.xml

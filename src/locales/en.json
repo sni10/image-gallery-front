@@ -95,6 +95,9 @@
   "photo": {
     "delete": "Delete photo",
     "deleteConfirm": "Delete this photo for good?",
-    "description": "Photo \"{title}\" from the gallery \"{gallery}\""
+    "description": "Photo \"{title}\" from the gallery \"{gallery}\"",
+    "prev": "Previous photo",
+    "next": "Next photo",
+    "tags": "Tags"
   }
 }

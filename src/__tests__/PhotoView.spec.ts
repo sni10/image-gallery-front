@@ -13,6 +13,8 @@ const photo = {
   height: 100,
   isFavorite: false,
   gallery: { id: 'g1', title: 'Cats', category: { id: 'c1', slug: 'ai', title: 'AI' } },
+  prevId: null,
+  nextId: 'p2',
 }
 const respond = (status: number, body: unknown = {}) =>
   vi.stubGlobal(
@@ -33,6 +35,15 @@ describe('photo page SSR', () => {
     expect(r.head).toContain('<link rel="canonical" href="https://artai.win/photos/p1">')
     expect(r.html).toContain('href="/galleries/g1"')
     expect(r.html).toContain('href="/categories/ai"')
+  })
+
+  it('arrows to gallery neighbours (none at the start), tags under the photo', async () => {
+    respond(200, photo)
+    const r = await render('/photos/p1')
+    expect(r.html).toContain('href="/photos/p2"')
+    expect(r.html).toContain('rel="next"')
+    expect(r.html).not.toContain('rel="prev"')
+    expect(r.html).toContain('#cat')
   })
 
   it('unknown photo: 404, no canonical', async () => {

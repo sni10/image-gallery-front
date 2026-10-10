@@ -95,6 +95,9 @@
   "photo": {
     "delete": "Удалить фото",
     "deleteConfirm": "Удалить фото насовсем?",
-    "description": "Фото «{title}» из галереи «{gallery}»"
+    "description": "Фото «{title}» из галереи «{gallery}»",
+    "prev": "Предыдущее фото",
+    "next": "Следующее фото",
+    "tags": "Теги"
   }
 }

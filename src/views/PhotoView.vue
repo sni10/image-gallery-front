@@ -58,14 +58,38 @@ const crumbs = computed(() => {
 
   <figure v-if="photo" itemscope itemtype="https://schema.org/ImageObject">
     <h1 class="mb-4" itemprop="name">{{ photo.title }}</h1>
-    <img
-      :src="photo.url"
-      :alt="photo.title"
-      :width="photo.width"
-      :height="photo.height"
-      itemprop="contentUrl"
-      class="mx-auto block h-auto max-h-[85vh] w-auto max-w-full rounded-box bg-base-300"
-    />
+    <div class="relative">
+      <img
+        :src="photo.url"
+        :alt="photo.title"
+        :width="photo.width"
+        :height="photo.height"
+        itemprop="contentUrl"
+        class="mx-auto block h-auto max-h-[85vh] w-auto max-w-full rounded-box bg-base-300"
+      />
+      <RouterLink
+        v-if="photo.prevId"
+        :to="`/photos/${photo.prevId}`"
+        rel="prev"
+        class="btn btn-circle absolute top-1/2 left-2 -translate-y-1/2 border-0 bg-black/45 text-xl text-white"
+        :title="$t('photo.prev')"
+        :aria-label="$t('photo.prev')"
+        >‹</RouterLink
+      >
+      <RouterLink
+        v-if="photo.nextId"
+        :to="`/photos/${photo.nextId}`"
+        rel="next"
+        class="btn btn-circle absolute top-1/2 right-2 -translate-y-1/2 border-0 bg-black/45 text-xl text-white"
+        :title="$t('photo.next')"
+        :aria-label="$t('photo.next')"
+        >›</RouterLink
+      >
+    </div>
+    <!-- ponytail: plain badges for now; will link to photos by tag once the API has that list -->
+    <ul v-if="photo.tags.length" class="mt-4 flex flex-wrap gap-2" :aria-label="$t('photo.tags')">
+      <li v-for="tag in photo.tags" :key="tag" class="badge badge-outline">#{{ tag }}</li>
+    </ul>
     <meta itemprop="thumbnailUrl" :content="photo.thumbUrl" />
     <meta itemprop="width" :content="String(photo.width)" />
     <meta itemprop="height" :content="String(photo.height)" />
