@@ -12,8 +12,14 @@ defineEmits<{ retry: [] }>()
 
 <template>
   <div class="my-8 flex flex-col items-center gap-4">
-    <span v-if="loading" class="loading loading-spinner loading-lg" role="status">
-      <span class="sr-only">{{ $t('common.loading') }}</span>
+    <!-- invisible, not v-if: the spinner keeps its height, so toggling it never shifts the page -->
+    <span
+      class="loading loading-spinner loading-lg"
+      :class="{ invisible: !loading }"
+      role="status"
+      :aria-hidden="!loading"
+    >
+      <span v-if="loading" class="sr-only">{{ $t('common.loading') }}</span>
     </span>
     <p v-if="empty" class="text-base-content/60" role="status">{{ emptyText }}</p>
     <div v-if="error" class="alert alert-error w-auto" role="alert">

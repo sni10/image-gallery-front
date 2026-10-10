@@ -43,7 +43,8 @@
   },
   "common": {
     "loading": "Loading…",
-    "retry": "Retry"
+    "retry": "Retry",
+    "toTop": "Back to top"
   },
   "errors": {
     "network": "No connection to the server",
