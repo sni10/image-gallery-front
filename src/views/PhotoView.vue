@@ -70,7 +70,7 @@ const crumbs = computed(() => {
   <BreadCrumbs :items="crumbs" />
 
   <figure v-if="photo" itemscope itemtype="https://schema.org/ImageObject">
-    <h1 class="mb-4" itemprop="name">{{ photo.title }}</h1>
+    <h1 class="sr-only" itemprop="name">{{ photo.title }}</h1>
     <div class="relative">
       <img
         :src="photo.url"
