@@ -2,7 +2,7 @@
 import { ref, toRef } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
-import { ApiError, deletePhoto, me, type Photo } from '@/api'
+import { ApiError, deletePhoto, isLocked, me, type Photo } from '@/api'
 import { errorMessage } from '@/i18n'
 import { useLightbox } from '@/composables/useLightbox'
 import { useFavorite } from '@/composables/useFavorite'
@@ -15,12 +15,20 @@ const props = defineProps<{
   total: number
   loadMore: () => Promise<void>
   alt: (p: Photo, i: number) => string
+  guestFree?: number // guests see this many first photos; the rest are blurred until sign-in. Default: all
 }>()
 const emit = defineEmits<{ delete: [id: string] }>() // parent drops it from the list
 
+// Locked = API sent no url (guest). SSR is always anonymous: signed-in users get page 1 again with the token
+// (useInfiniteList), so their blur goes away after hydration.
+const locked = (i: number) => {
+  const p = props.items[i]
+  return !!p && isLocked(p, !me.value && i >= (props.guestFree ?? Infinity))
+}
+
 const current = ref<number | null>(null)
 const toggle = useFavorite()
-useLightbox(current, toRef(props, 'items'), toRef(props, 'total'), props.loadMore, toggle)
+useLightbox(current, toRef(props, 'items'), toRef(props, 'total'), props.loadMore, toggle, locked)
 
 const ratio = (p: Photo) => p.height / p.width
 
@@ -46,11 +54,12 @@ async function remove(p: Photo) {
 }
 
 // Thumbs are real links to the photo page (crawlable, open-in-new-tab works);
-// a plain left click opens the lightbox instead.
+// a plain left click opens the lightbox instead (a locked photo: the login page).
 function open(e: MouseEvent, i: number) {
   if (e.button !== 0 || e.ctrlKey || e.metaKey || e.shiftKey || e.altKey) return
   e.preventDefault()
-  current.value = i
+  if (locked(i)) router.push({ name: 'login', query: { next: route.fullPath } })
+  else current.value = i
 }
 </script>
 
@@ -69,7 +78,14 @@ function open(e: MouseEvent, i: number) {
           class="block focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
           @click="open($event, i)"
         >
+          <div
+            v-if="!p.thumbUrl"
+            class="w-full bg-base-300"
+            :style="{ aspectRatio: `${p.width} / ${p.height}` }"
+            :data-pswp-index="i"
+          />
           <img
+            v-else
             :src="p.thumbUrl"
             :alt="alt(p, i)"
             loading="lazy"
@@ -79,9 +95,16 @@ function open(e: MouseEvent, i: number) {
             :data-pswp-index="i"
             itemprop="thumbnailUrl"
             class="block h-auto w-full bg-base-300 transition-transform duration-300 group-hover:scale-[1.03]"
+            :class="{ 'scale-110 blur-2xl group-hover:scale-110': locked(i) }"
           />
+          <span
+            v-if="locked(i)"
+            class="pointer-events-none absolute inset-0 grid place-items-center p-2 text-center text-sm font-semibold text-white [text-shadow:0_1px_3px_#000]"
+          >
+            🔒 {{ $t('photo.locked') }}
+          </span>
         </a>
-        <meta itemprop="contentUrl" :content="p.url" />
+        <meta v-if="p.url" itemprop="contentUrl" :content="p.url" />
         <!-- me is null on the server and first client render: no hydration mismatch -->
         <button
           v-if="me?.isAdmin"

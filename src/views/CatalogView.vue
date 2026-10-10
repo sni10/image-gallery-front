@@ -71,7 +71,7 @@ import ListStatus from '@/components/ListStatus.vue'
             itemprop="url"
           >
             <img
-              v-if="g.cover"
+              v-if="g.cover?.thumbUrl"
               :src="g.cover.thumbUrl"
               :alt="g.title"
               loading="lazy"

@@ -33,9 +33,12 @@ export function useInfiniteList<T extends { id: string }>(
   const empty = computed(() => page.value > 0 && total.value === 0)
   const sentinel = useTemplateRef<HTMLElement>('sentinel')
   let observer: IntersectionObserver | undefined
+  // An empty page = the end, even if items < total: a removal or an upload during scroll shifts the page
+  // offsets, so the loaded count may never reach total. Without this the sentinel loops on empty pages forever.
+  const done = ref(false)
 
   async function loadMore() {
-    if (loading.value || (page.value > 0 && items.value.length >= total.value)) return
+    if (loading.value || done.value || (page.value > 0 && items.value.length >= total.value)) return
     loading.value = true
     failure.value = null
     try {
@@ -45,6 +48,7 @@ export function useInfiniteList<T extends { id: string }>(
       items.value.push(...res.items.filter((p) => !seen.has(p.id)))
       total.value = res.total
       page.value++
+      done.value = res.items.length === 0
     } catch (e) {
       failure.value = e
       // 4xx won't fix itself on retry (bad id / params); network errors and 5xx might

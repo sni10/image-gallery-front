@@ -70,3 +70,57 @@ describe('admin trash', () => {
     expect(w.emitted('delete')).toBeUndefined()
   })
 })
+
+describe('guest blur', () => {
+  const two = (guestFree?: number) =>
+    mount(PhotoGrid, {
+      props: {
+        items: [photo, { ...photo, id: 'p2' }],
+        total: 2,
+        loadMore: async () => {},
+        alt: () => '',
+        guestFree,
+      },
+      global: { plugins: [createI18nFor('en'), createRouter()] },
+    })
+  const blurred = (w: ReturnType<typeof two>) =>
+    w.findAll('img').map((i) => i.classes().includes('blur-2xl'))
+
+  it('guests see the first guestFree photos, the rest blurred', async () => {
+    const w = two(1)
+    await flushPromises()
+    expect(blurred(w)).toEqual([false, true])
+  })
+
+  it('signed-in users and lists without guestFree: nothing blurred', async () => {
+    expect(blurred(two())).toEqual([false, false])
+    me.value = user(false)
+    expect(blurred(two(0))).toEqual([false, false])
+  })
+})
+
+describe('API lock (Photo.locked, url: null)', () => {
+  const grid2 = (items: Photo[], guestFree?: number) =>
+    mount(PhotoGrid, {
+      props: { items, total: items.length, loadMore: async () => {}, alt: () => '', guestFree },
+      global: { plugins: [createI18nFor('en'), createRouter()] },
+    })
+
+  it('the API flag wins over the legacy guest rule; locked photos carry no original url', () => {
+    const w = grid2(
+      [
+        { ...photo, id: 'open', locked: false },
+        { ...photo, id: 'shut', url: null, locked: true },
+      ],
+      0,
+    )
+    expect(w.findAll('img').map((i) => i.classes().includes('blur-2xl'))).toEqual([false, true])
+    expect(w.findAll('meta[itemprop="contentUrl"]')).toHaveLength(1)
+  })
+
+  it('no thumb either: a sized placeholder instead of an image', () => {
+    const w = grid2([{ ...photo, url: null, thumbUrl: null, locked: true }])
+    expect(w.find('img').exists()).toBe(false)
+    expect(w.text()).toContain('Sign in to see this photo')
+  })
+})

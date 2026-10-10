@@ -5,6 +5,8 @@ import { me } from '@/api'
 import { useTemplateRef, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { useCategories } from '@/composables/useCategories'
+import AgeGate from '@/components/AgeGate.vue'
+import ScrollTop from '@/components/ScrollTop.vue'
 
 const { categories } = useCategories()
 // native <details> dropdowns (categories on desktop, the whole menu on phones): close after navigating
@@ -140,4 +142,6 @@ function setLocale(l: Locale) {
     <!-- key: /galleries/1 -> /galleries/2 remounts instead of reusing stale state -->
     <RouterView :key="$route.fullPath" />
   </main>
+  <ScrollTop />
+  <AgeGate />
 </template>

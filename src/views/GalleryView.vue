@@ -34,7 +34,7 @@ usePageMeta(() =>
           { title: gallery.value.title, n: gallery.value.photosCount },
           gallery.value.photosCount,
         ),
-        image: gallery.value.cover?.url,
+        image: gallery.value.cover?.thumbUrl ?? undefined, // url is signed and expires: bots need a stable one
       }
     : {},
 )
@@ -66,6 +66,7 @@ import ListStatus from '@/components/ListStatus.vue'
       :items="items"
       :total="total"
       :load-more="loadMore"
+      :guest-free="10"
       @delete="remove"
       :alt="(_, i) => $t('gallery.photoAlt', { gallery: gallery?.title ?? '', n: i + 1 })"
     />
