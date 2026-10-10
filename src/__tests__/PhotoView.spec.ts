@@ -29,7 +29,7 @@ describe('photo page SSR', () => {
     respond(200, photo)
     const r = await render('/photos/p1?utm=x', undefined, 'https://artai.win')
     expect(r.status).toBe(200)
-    expect(r.head).toContain('<title>Neon cat · Image Gallery</title>')
+    expect(r.head).toContain('<title>Neon cat · ArtAI.win</title>')
     expect(r.head).toContain('Photo &quot;Neon cat&quot; from the gallery &quot;Cats&quot;')
     expect(r.head).toContain('<meta property="og:image" content="https://api/t.webp">')
     expect(r.head).toContain('<link rel="canonical" href="https://artai.win/photos/p1">')
