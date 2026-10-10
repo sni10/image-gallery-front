@@ -15,12 +15,17 @@ const props = defineProps<{
   total: number
   loadMore: () => Promise<void>
   alt: (p: Photo, i: number) => string
+  guestFree?: number // guests see this many first photos; the rest are blurred until sign-in. Default: all
 }>()
 const emit = defineEmits<{ delete: [id: string] }>() // parent drops it from the list
 
+// ponytail: cosmetic lock, the full-size URL is still in the API/HTML; real lock = API hides urls from guests.
+// me is null on the server and first client render, so SSR blurs and signed-in users unblur after /me
+const locked = (i: number) => !me.value && i >= (props.guestFree ?? Infinity)
+
 const current = ref<number | null>(null)
 const toggle = useFavorite()
-useLightbox(current, toRef(props, 'items'), toRef(props, 'total'), props.loadMore, toggle)
+useLightbox(current, toRef(props, 'items'), toRef(props, 'total'), props.loadMore, toggle, locked)
 
 const ratio = (p: Photo) => p.height / p.width
 
@@ -46,11 +51,12 @@ async function remove(p: Photo) {
 }
 
 // Thumbs are real links to the photo page (crawlable, open-in-new-tab works);
-// a plain left click opens the lightbox instead.
+// a plain left click opens the lightbox instead (a locked photo: the login page).
 function open(e: MouseEvent, i: number) {
   if (e.button !== 0 || e.ctrlKey || e.metaKey || e.shiftKey || e.altKey) return
   e.preventDefault()
-  current.value = i
+  if (locked(i)) router.push({ name: 'login', query: { next: route.fullPath } })
+  else current.value = i
 }
 </script>
 
@@ -79,7 +85,14 @@ function open(e: MouseEvent, i: number) {
             :data-pswp-index="i"
             itemprop="thumbnailUrl"
             class="block h-auto w-full bg-base-300 transition-transform duration-300 group-hover:scale-[1.03]"
+            :class="{ 'scale-110 blur-2xl group-hover:scale-110': locked(i) }"
           />
+          <span
+            v-if="locked(i)"
+            class="pointer-events-none absolute inset-0 grid place-items-center p-2 text-center text-sm font-semibold text-white [text-shadow:0_1px_3px_#000]"
+          >
+            🔒 {{ $t('photo.locked') }}
+          </span>
         </a>
         <meta itemprop="contentUrl" :content="p.url" />
         <!-- me is null on the server and first client render: no hydration mismatch -->

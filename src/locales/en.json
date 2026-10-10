@@ -98,6 +98,13 @@
     "description": "Photo \"{title}\" from the gallery \"{gallery}\"",
     "prev": "Previous photo",
     "next": "Next photo",
-    "tags": "Tags"
+    "tags": "Tags",
+    "locked": "Sign in to see this photo"
+  },
+  "age": {
+    "title": "18+ only",
+    "text": "This site contains AI-generated adult content (NSFW). By entering you confirm that you are at least 18 years old (or the age of majority where you live), that viewing such content is legal for you, and that you enter of your own free will and take full responsibility for it.",
+    "enter": "I am 18+, enter",
+    "leave": "Leave"
   }
 }

@@ -70,3 +70,31 @@ describe('admin trash', () => {
     expect(w.emitted('delete')).toBeUndefined()
   })
 })
+
+describe('guest blur', () => {
+  const two = (guestFree?: number) =>
+    mount(PhotoGrid, {
+      props: {
+        items: [photo, { ...photo, id: 'p2' }],
+        total: 2,
+        loadMore: async () => {},
+        alt: () => '',
+        guestFree,
+      },
+      global: { plugins: [createI18nFor('en'), createRouter()] },
+    })
+  const blurred = (w: ReturnType<typeof two>) =>
+    w.findAll('img').map((i) => i.classes().includes('blur-2xl'))
+
+  it('guests see the first guestFree photos, the rest blurred', async () => {
+    const w = two(1)
+    await flushPromises()
+    expect(blurred(w)).toEqual([false, true])
+  })
+
+  it('signed-in users and lists without guestFree: nothing blurred', async () => {
+    expect(blurred(two())).toEqual([false, false])
+    me.value = user(false)
+    expect(blurred(two(0))).toEqual([false, false])
+  })
+})

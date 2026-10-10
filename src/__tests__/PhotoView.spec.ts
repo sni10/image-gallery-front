@@ -44,6 +44,7 @@ describe('photo page SSR', () => {
     expect(r.html).toContain('rel="next"')
     expect(r.html).not.toContain('rel="prev"')
     expect(r.html).toContain('#cat')
+    expect(r.html).toContain('blur-2xl') // server renders as a guest
   })
 
   it('unknown photo: 404, no canonical', async () => {

@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { computed, onMounted, onServerPrefetch, onUnmounted, ref, useSSRContext } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useRouter } from 'vue-router'
-import { ApiError, getPhoto, type PhotoDetail } from '@/api'
+import { useRoute, useRouter } from 'vue-router'
+import { ApiError, getPhoto, me, type PhotoDetail } from '@/api'
 import { errorMessage } from '@/i18n'
 import { usePageMeta } from '@/composables/usePageMeta'
 import { useSsrState } from '@/ssr'
@@ -27,6 +27,12 @@ async function load() {
 }
 onServerPrefetch(load)
 onMounted(load)
+
+// guests get the full-size blurred (the page can't tell if it's among a gallery's free first photos).
+// me is null on the server and first client render: SSR blurs, signed-in users unblur after /me
+const locked = computed(() => !me.value)
+const route = useRoute()
+const login = computed(() => ({ name: 'login', query: { next: route.fullPath } }))
 
 // ←/→ = the arrow links; not while typing or with modifiers (browser shortcuts)
 const router = useRouter()
@@ -92,7 +98,11 @@ const crumbs = computed(() => {
 
   <figure v-if="photo" itemscope itemtype="https://schema.org/ImageObject">
     <h1 class="sr-only" itemprop="name">{{ photo.title }}</h1>
-    <div class="relative" @touchstart.passive="onTouchStart" @touchend.passive="onTouchEnd">
+    <div
+      class="relative overflow-hidden rounded-box"
+      @touchstart.passive="onTouchStart"
+      @touchend.passive="onTouchEnd"
+    >
       <img
         :src="photo.url"
         :alt="photo.title"
@@ -100,7 +110,15 @@ const crumbs = computed(() => {
         :height="photo.height"
         itemprop="contentUrl"
         class="mx-auto block h-auto max-h-[85vh] w-auto max-w-full rounded-box bg-base-300"
+        :class="{ 'scale-110 blur-2xl': locked }"
       />
+      <RouterLink
+        v-if="locked"
+        :to="login"
+        class="absolute inset-0 grid place-items-center text-xl font-semibold text-white [text-shadow:0_1px_3px_#000]"
+      >
+        🔒 {{ $t('photo.locked') }}
+      </RouterLink>
       <!-- click zones: a third of the width each, full height; the circle is only the visual cue -->
       <RouterLink
         v-if="photo.prevId"
@@ -111,7 +129,10 @@ const crumbs = computed(() => {
         :aria-label="$t('photo.prev')"
       >
         <span :class="arrow" aria-hidden="true">
-          <svg viewBox="0 0 24 24" class="size-6 fill-none stroke-current stroke-2 [stroke-linecap:round] [stroke-linejoin:round]">
+          <svg
+            viewBox="0 0 24 24"
+            class="size-6 fill-none stroke-current stroke-2 [stroke-linecap:round] [stroke-linejoin:round]"
+          >
             <path d="M15 5l-7 7 7 7" />
           </svg>
         </span>
@@ -125,7 +146,10 @@ const crumbs = computed(() => {
         :aria-label="$t('photo.next')"
       >
         <span :class="arrow" aria-hidden="true">
-          <svg viewBox="0 0 24 24" class="size-6 fill-none stroke-current stroke-2 [stroke-linecap:round] [stroke-linejoin:round]">
+          <svg
+            viewBox="0 0 24 24"
+            class="size-6 fill-none stroke-current stroke-2 [stroke-linecap:round] [stroke-linejoin:round]"
+          >
             <path d="M9 5l7 7-7 7" />
           </svg>
         </span>

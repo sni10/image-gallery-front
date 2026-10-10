@@ -7,7 +7,9 @@ const esc = (s: string) =>
 
 export async function render(url: string, cookie?: string, origin = '') {
   const lang = pickLocale(cookie)
-  const { app, router, state, head } = createApp(lang)
+  // age gate answer lives in a cookie so the server renders the same gate state the client hydrates
+  const ageOk = /(?:^|;\s*)age_ok=1(?:;|$)/.test(cookie ?? '')
+  const { app, router, state, head } = createApp(lang, { ageOk })
 
   await router.push(url)
   await router.isReady()

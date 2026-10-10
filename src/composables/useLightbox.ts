@@ -3,7 +3,7 @@ import PhotoSwipe from 'photoswipe'
 import 'photoswipe/style.css'
 import type { Photo } from '@/api'
 import { useI18n } from 'vue-i18n'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 
 const PREFETCH = 5 // start loading next page when this close to the end of loaded photos
 const WHEEL_LOCK = 350 // ms between wheel-driven slide changes
@@ -12,6 +12,8 @@ const HEART =
   '<svg class="pswp__icn" viewBox="0 0 24 24" width="24" height="24"><path d="M12 21s-7.5-4.6-9.5-9.2C1.2 8.6 3.2 5 6.6 5c2 0 3.4 1.1 4.4 2.5C12 6.1 13.4 5 15.4 5c3.4 0 5.4 3.6 4.1 6.8C19.5 16.4 12 21 12 21z"/></svg>'
 const LINK =
   '<svg class="pswp__icn" viewBox="0 0 24 24" width="24" height="24" style="fill:none;stroke:var(--pswp-icon-color);stroke-width:2;stroke-linecap:round"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/></svg>'
+const lockedSlide = (thumb: string, login: string, text: string) =>
+  `<div style="position:relative;height:100%;overflow:hidden"><img src="${encodeURI(thumb)}" alt="" style="width:100%;height:100%;object-fit:contain;filter:blur(32px);transform:scale(1.1)"><a href="${login}" style="position:absolute;inset:0;display:grid;place-items:center;color:#fff;font:600 1.25rem sans-serif;text-shadow:0 1px 3px #000">🔒 ${text}</a></div>`
 const pending = (text: string) =>
   `<div style="display:grid;place-items:center;height:100%;color:#aaa">${text}</div>`
 
@@ -22,10 +24,14 @@ export function useLightbox(
   total: Readonly<Ref<number>>,
   loadMore: () => Promise<void>,
   toggleFavorite: (p: Photo) => Promise<unknown>,
+  locked: (i: number) => boolean = () => false, // guest-blurred slides: thumb in blur + sign-in link
 ) {
   const { t } = useI18n()
   const router = useRouter()
+  const route = useRoute()
   let pswp: PhotoSwipe | null = null
+
+  const loginHref = () => router.resolve({ name: 'login', query: { next: route.fullPath } }).href
 
   function prefetch() {
     if (pswp && pswp.currIndex >= photos.value.length - PREFETCH) loadMore()
@@ -48,6 +54,7 @@ export function useLightbox(
     pswp.addFilter('itemData', (_, idx) => {
       const p = photos.value[idx]
       if (!p) return { html: pending(t('common.loading')) }
+      if (locked(idx)) return { html: lockedSlide(p.thumbUrl, loginHref(), t('photo.locked')) }
       return { src: p.url, msrc: p.thumbUrl, width: p.width, height: p.height, alt: p.title }
     })
     // zoom-in/out animation from/to the grid thumbnail
