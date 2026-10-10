@@ -5,7 +5,7 @@ import { pickLocale } from './i18n'
 const esc = (s: string) =>
   s.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
 
-export async function render(url: string, cookie?: string) {
+export async function render(url: string, cookie?: string, origin = '') {
   const lang = pickLocale(cookie)
   const { app, router, state, head } = createApp(lang)
 
@@ -17,6 +17,7 @@ export async function render(url: string, cookie?: string) {
   const html = await renderToString(app, ctx)
 
   const m = head.meta?.value
+  const status = router.currentRoute.value.name === 'not-found' ? 404 : (ctx.status ?? 200)
   const tags = m
     ? [
         `<title>${esc(m.title)}</title>`,
@@ -26,6 +27,10 @@ export async function render(url: string, cookie?: string) {
         `<meta property="og:description" content="${esc(m.description)}">`,
         m.noindex ? `<meta name="robots" content="noindex">` : '',
         m.image ? `<meta property="og:image" content="${esc(m.image)}">` : '',
+        // path only: query strings (?next=…) don't make another page
+        !m.noindex && status === 200
+          ? `<link rel="canonical" href="${esc(origin + router.currentRoute.value.path)}">`
+          : '',
       ]
         .filter(Boolean)
         .join('\n    ')
@@ -37,6 +42,6 @@ export async function render(url: string, cookie?: string) {
     lang,
     // `<` escaped so data can't close the <script> it's embedded in
     state: `<script>window.__SSR_STATE__=${JSON.stringify(state).replace(/</g, '\\u003c')}</script>`,
-    status: router.currentRoute.value.name === 'not-found' ? 404 : (ctx.status ?? 200),
+    status,
   }
 }

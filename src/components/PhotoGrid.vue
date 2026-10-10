@@ -45,7 +45,7 @@ async function remove(p: Photo) {
   }
 }
 
-// Thumbs are real links to the full image (crawlable, open-in-new-tab works);
+// Thumbs are real links to the photo page (crawlable, open-in-new-tab works);
 // a plain left click opens the lightbox instead.
 function open(e: MouseEvent, i: number) {
   if (e.button !== 0 || e.ctrlKey || e.metaKey || e.shiftKey || e.altKey) return
@@ -64,8 +64,8 @@ function open(e: MouseEvent, i: number) {
         itemtype="https://schema.org/ImageObject"
       >
         <a
-          :href="p.url"
-          itemprop="contentUrl"
+          :href="`/photos/${p.id}`"
+          itemprop="url"
           class="block focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
           @click="open($event, i)"
         >
@@ -81,6 +81,7 @@ function open(e: MouseEvent, i: number) {
             class="block h-auto w-full bg-base-300 transition-transform duration-300 group-hover:scale-[1.03]"
           />
         </a>
+        <meta itemprop="contentUrl" :content="p.url" />
         <!-- me is null on the server and first client render: no hydration mismatch -->
         <button
           v-if="me?.isAdmin"
