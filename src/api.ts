@@ -3,12 +3,18 @@ import { ref } from 'vue'
 export interface Photo {
   id: string
   title: string
-  url: string // full version, ≤2048px long side
-  thumbUrl: string // ≤400px long side
+  url: string | null // full version, ≤2048px long side; signed, expires (hours). null = locked for this viewer
+  thumbUrl: string | null // ≤400px long side, public; null only for a locked photo without a thumb
   width: number // of the full version
   height: number
   isFavorite: boolean // always false for anonymous requests
+  locked?: boolean // guest without access: url is null, sign-in opens it
 }
+
+// The API decides (locked, url: null). `legacy` = the old front-only guest rule for an API without `locked`.
+// ponytail: drop `legacy` (and guestFree) once the backend with Photo.locked is deployed
+export const isLocked = (p: Photo, legacy = false) =>
+  !!p.locked || !p.url || (p.locked === undefined && legacy)
 
 export interface Category {
   id: string

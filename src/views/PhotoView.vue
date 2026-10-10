@@ -2,7 +2,7 @@
 import { computed, onMounted, onServerPrefetch, onUnmounted, ref, useSSRContext } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
-import { ApiError, getPhoto, me, type PhotoDetail } from '@/api'
+import { ApiError, getPhoto, hasSession, isLocked, me, type PhotoDetail } from '@/api'
 import { errorMessage } from '@/i18n'
 import { usePageMeta } from '@/composables/usePageMeta'
 import { useSsrState } from '@/ssr'
@@ -26,11 +26,24 @@ async function load() {
   }
 }
 onServerPrefetch(load)
-onMounted(load)
+// server rendered anonymously (no url for a locked photo): with a session, fetch again with the token
+onMounted(() => (photo.value && hasSession() ? refresh() : load()))
+function refresh() {
+  getPhoto(props.id).then(
+    (p) => (photo.value = p),
+    () => {},
+  )
+}
+// the signed url expired while the page stayed open: one fresh fetch
+let refreshed = false
+function onImgError() {
+  if (refreshed || !photo.value?.url) return
+  refreshed = true
+  refresh()
+}
 
-// guests get the full-size blurred (the page can't tell if it's among a gallery's free first photos).
-// me is null on the server and first client render: SSR blurs, signed-in users unblur after /me
-const locked = computed(() => !me.value)
+// the API decides (url: null + locked); legacy API without `locked`: every guest gets the blur
+const locked = computed(() => !!photo.value && isLocked(photo.value, !me.value))
 const route = useRoute()
 const login = computed(() => ({ name: 'login', query: { next: route.fullPath } }))
 
@@ -74,7 +87,7 @@ usePageMeta(() => {
     title: p.title,
     description:
       p.description || t('photo.description', { title: p.title, gallery: p.gallery.title }),
-    image: p.thumbUrl,
+    image: p.thumbUrl ?? undefined, // never the signed url: it expires
   }
 })
 
@@ -103,12 +116,19 @@ const crumbs = computed(() => {
       @touchstart.passive="onTouchStart"
       @touchend.passive="onTouchEnd"
     >
+      <div
+        v-if="!photo.url && !photo.thumbUrl"
+        class="mx-auto max-h-[85vh] w-full max-w-full rounded-box bg-base-300"
+        :style="{ aspectRatio: `${photo.width} / ${photo.height}` }"
+      />
       <img
-        :src="photo.url"
+        v-else
+        :src="(photo.url ?? photo.thumbUrl)!"
         :alt="photo.title"
         :width="photo.width"
         :height="photo.height"
-        itemprop="contentUrl"
+        :itemprop="photo.url ? 'contentUrl' : undefined"
+        @error="onImgError"
         class="mx-auto block h-auto max-h-[85vh] w-auto max-w-full rounded-box bg-base-300"
         :class="{ 'scale-110 blur-2xl': locked }"
       />
@@ -159,7 +179,7 @@ const crumbs = computed(() => {
     <ul v-if="photo.tags.length" class="mt-4 flex flex-wrap gap-2" :aria-label="$t('photo.tags')">
       <li v-for="tag in photo.tags" :key="tag" class="badge badge-outline">#{{ tag }}</li>
     </ul>
-    <meta itemprop="thumbnailUrl" :content="photo.thumbUrl" />
+    <meta v-if="photo.thumbUrl" itemprop="thumbnailUrl" :content="photo.thumbUrl" />
     <meta itemprop="width" :content="String(photo.width)" />
     <meta itemprop="height" :content="String(photo.height)" />
     <meta v-if="photo.description" itemprop="description" :content="photo.description" />

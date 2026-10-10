@@ -39,7 +39,7 @@ describe('photo page SSR', () => {
 
   it('arrows to gallery neighbours (none at the start), tags under the photo', async () => {
     respond(200, photo)
-    const r = await render('/photos/p1')
+    const r = await render('/photos/p1', 'age_ok=1')
     expect(r.html).toContain('href="/photos/p2"')
     expect(r.html).toContain('rel="next"')
     expect(r.html).not.toContain('rel="prev"')
@@ -52,5 +52,22 @@ describe('photo page SSR', () => {
     const r = await render('/photos/nope', undefined, 'https://artai.win')
     expect(r.status).toBe(404)
     expect(r.head).not.toContain('canonical')
+  })
+})
+
+describe('photo page lock from the API', () => {
+  it('locked: blurred thumb, the original url is nowhere in the page', async () => {
+    respond(200, { ...photo, url: null, locked: true })
+    const r = await render('/photos/p1', 'age_ok=1')
+    expect(r.html).toContain('src="https://api/t.webp"')
+    expect(r.html).toContain('blur-2xl')
+    expect(r.html + r.state).not.toContain('p.png')
+  })
+
+  it('free for guests (first photos of a gallery): the original, no blur', async () => {
+    respond(200, { ...photo, locked: false })
+    const r = await render('/photos/p1', 'age_ok=1')
+    expect(r.html).toContain('src="https://api/p.png"')
+    expect(r.html).not.toContain('blur-2xl')
   })
 })

@@ -2,7 +2,7 @@
 import { ref, toRef } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
-import { ApiError, deletePhoto, me, type Photo } from '@/api'
+import { ApiError, deletePhoto, isLocked, me, type Photo } from '@/api'
 import { errorMessage } from '@/i18n'
 import { useLightbox } from '@/composables/useLightbox'
 import { useFavorite } from '@/composables/useFavorite'
@@ -19,9 +19,12 @@ const props = defineProps<{
 }>()
 const emit = defineEmits<{ delete: [id: string] }>() // parent drops it from the list
 
-// ponytail: cosmetic lock, the full-size URL is still in the API/HTML; real lock = API hides urls from guests.
-// me is null on the server and first client render, so SSR blurs and signed-in users unblur after /me
-const locked = (i: number) => !me.value && i >= (props.guestFree ?? Infinity)
+// Locked = API sent no url (guest). SSR is always anonymous: signed-in users get page 1 again with the token
+// (useInfiniteList), so their blur goes away after hydration.
+const locked = (i: number) => {
+  const p = props.items[i]
+  return !!p && isLocked(p, !me.value && i >= (props.guestFree ?? Infinity))
+}
 
 const current = ref<number | null>(null)
 const toggle = useFavorite()
@@ -75,7 +78,14 @@ function open(e: MouseEvent, i: number) {
           class="block focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
           @click="open($event, i)"
         >
+          <div
+            v-if="!p.thumbUrl"
+            class="w-full bg-base-300"
+            :style="{ aspectRatio: `${p.width} / ${p.height}` }"
+            :data-pswp-index="i"
+          />
           <img
+            v-else
             :src="p.thumbUrl"
             :alt="alt(p, i)"
             loading="lazy"
@@ -94,7 +104,7 @@ function open(e: MouseEvent, i: number) {
             🔒 {{ $t('photo.locked') }}
           </span>
         </a>
-        <meta itemprop="contentUrl" :content="p.url" />
+        <meta v-if="p.url" itemprop="contentUrl" :content="p.url" />
         <!-- me is null on the server and first client render: no hydration mismatch -->
         <button
           v-if="me?.isAdmin"

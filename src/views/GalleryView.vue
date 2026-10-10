@@ -34,7 +34,7 @@ usePageMeta(() =>
           { title: gallery.value.title, n: gallery.value.photosCount },
           gallery.value.photosCount,
         ),
-        image: gallery.value.cover?.url,
+        image: gallery.value.cover?.thumbUrl ?? undefined, // url is signed and expires: bots need a stable one
       }
     : {},
 )
