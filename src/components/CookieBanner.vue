@@ -25,7 +25,7 @@ function choose(c: 'yes' | 'no') {
     >
       <p class="flex-1 text-sm">
         {{ $t('cookies.text') }}
-        <RouterLink to="/terms" class="link link-primary">{{ $t('nav.terms') }}</RouterLink>
+        <RouterLink to="/privacy" class="link link-primary">{{ $t('nav.privacy') }}</RouterLink>
       </p>
       <div class="flex justify-end gap-2">
         <button type="button" class="btn btn-ghost btn-sm" @click="choose('no')">

@@ -76,6 +76,11 @@ function setLocale(l: Locale) {
               {{ $t('nav.terms') }}
             </RouterLink>
           </li>
+          <li>
+            <RouterLink to="/privacy" :class="{ 'menu-active': $route.path === '/privacy' }">
+              {{ $t('nav.privacy') }}
+            </RouterLink>
+          </li>
         </ul>
       </details>
       <RouterLink to="/" class="btn btn-ghost px-2 text-lg font-bold max-sm:hidden">
@@ -118,6 +123,11 @@ function setLocale(l: Locale) {
         <li>
           <RouterLink to="/terms" :class="{ 'menu-active': $route.path === '/terms' }">
             {{ $t('nav.terms') }}
+          </RouterLink>
+        </li>
+        <li>
+          <RouterLink to="/privacy" :class="{ 'menu-active': $route.path === '/privacy' }">
+            {{ $t('nav.privacy') }}
           </RouterLink>
         </li>
       </ul>

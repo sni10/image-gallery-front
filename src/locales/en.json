@@ -11,7 +11,8 @@
     "account": "Account",
     "categories": "Categories",
     "menu": "Menu",
-    "terms": "Terms"
+    "terms": "Terms",
+    "privacy": "Privacy"
   },
   "home": {
     "tagline": "Photos, organized into galleries.",
@@ -69,7 +70,9 @@
     "noAccount": "No account? Sign up",
     "haveAccount": "Already have an account? Sign in",
     "agree": "I have read and accept the {terms}",
-    "termsLink": "Terms of Use"
+    "termsLink": "Terms of Use",
+    "privacyNote": "How we handle your data: {privacy}",
+    "privacyLink": "Privacy Policy"
   },
   "confirm": {
     "title": "Email confirmation",
@@ -171,6 +174,55 @@
       {
         "title": "10. Changes",
         "body": "We may update these Terms. The date of the latest version is shown at the top of this page. Continuing to use the Site after an update means you accept the new version."
+      }
+    ]
+  },
+  "privacy": {
+    "title": "Privacy Policy",
+    "description": "Privacy Policy of ArtAI.win: what data we collect, why, how long we keep it and your rights.",
+    "sections": [
+      {
+        "title": "1. Who we are",
+        "body": "This policy explains how ArtAI.win (\"Site\") handles personal data. The data controller is the Site administration. For any privacy question or request, write to us through the contact form.",
+        "link": "Contact form"
+      },
+      {
+        "title": "2. What we collect",
+        "body": "Account: email, password (stored only as a one-way hash, we never see it), sign-up date, the date and version of the Terms you accepted, your favorites.\nComplaints: the email, link and message you send, plus your IP address, browser (User-Agent) and time.\nServer logs: IP address, browser and requested pages.\nWe do not collect payment data and use no analytics, advertising trackers or third-party scripts."
+      },
+      {
+        "title": "3. Why we use it",
+        "body": "Account data: to provide the service you signed up for (GDPR Art. 6(1)(b)).\nComplaints and server logs: our legitimate interest in handling requests, preventing abuse and keeping the Site working (Art. 6(1)(f)).\nLanguage cookie: your consent (Art. 6(1)(a)).\nWe send only service emails (sign-up confirmation, email change, replies to complaints), never newsletters or ads."
+      },
+      {
+        "title": "4. Cookies and local storage",
+        "body": "age_ok: remembers that you confirmed you are 18+. Necessary, 1 year.\ncookies: remembers your answer to the cookie banner. Necessary, 1 year.\nlocale: remembers your language. Only if you accept cookies, 1 year.\nrefresh (browser local storage): keeps you signed in. Necessary, removed when you sign out.\nYou can change your choice at any time:",
+        "cookies": "Change cookie choice"
+      },
+      {
+        "title": "5. Who receives your data",
+        "body": "Hosting: BuyVM (Frantech Solutions), our server is located in the USA.\nEmail delivery: Brevo (Sendinblue SAS, France).\nThey process data only to run the Site. We do not sell your data and do not share it for advertising. We disclose data to authorities only when the law requires it."
+      },
+      {
+        "title": "6. Transfer outside the EU",
+        "body": "Our server is in the USA, so data of visitors from the EU and the UK is transferred to and stored in the USA, where data protection law differs from the EU. We collect as little data as possible to keep this risk low."
+      },
+      {
+        "title": "7. How long we keep it",
+        "body": "Account and favorites: until you delete the account.\nComplaints: up to 3 years, then deleted.\nServer logs: up to 30 days."
+      },
+      {
+        "title": "8. Your rights",
+        "body": "You may ask us to show, correct, delete or export your data, object to its use, or withdraw consent. Send the request through the contact form from the email of your account; we answer within 30 days. You may also complain to the data protection authority of your country.\nCalifornia residents: we do not sell or share personal information.",
+        "link": "Contact form"
+      },
+      {
+        "title": "9. Age",
+        "body": "The Site is for adults only (18+). We do not knowingly collect data of minors; if we learn about such an account, we delete it."
+      },
+      {
+        "title": "10. Changes",
+        "body": "We may update this policy. The date of the latest version is shown at the top of this page."
       }
     ]
   }

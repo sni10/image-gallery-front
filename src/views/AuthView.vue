@@ -109,6 +109,14 @@ async function resend() {
             </i18n-t>
           </label>
           <p v-if="fields.termsAccepted" class="label text-error">{{ fields.termsAccepted }}</p>
+          <!-- GDPR Art. 13: tell how the data is used where it is collected -->
+          <i18n-t keypath="auth.privacyNote" tag="p" scope="global" class="label whitespace-normal">
+            <template #privacy>
+              <RouterLink to="/privacy" target="_blank" class="link">
+                {{ $t('auth.privacyLink') }}
+              </RouterLink>
+            </template>
+          </i18n-t>
         </fieldset>
         <div v-if="error" class="alert alert-error" role="alert">{{ error }}</div>
         <div v-if="unconfirmed" class="alert alert-warning" role="alert">

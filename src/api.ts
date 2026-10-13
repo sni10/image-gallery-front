@@ -192,6 +192,8 @@ export const login = (email: string, password: string) =>
 // Date of the current Terms of Use (shown on /terms). Bump it when the text changes: the backend stores
 // which version each user accepted (SPEC-terms-acceptance.md in the backend repo).
 export const TERMS_VERSION = '2026-10-12'
+// Date of the current Privacy Policy (/privacy); front only, nobody accepts it
+export const PRIVACY_VERSION = '2026-10-13'
 
 export const register = (email: string, password: string) =>
   post<{ email: string }>('/auth/register', {

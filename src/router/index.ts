@@ -37,6 +37,12 @@ export function createRouter() {
       },
       { path: '/terms', name: 'terms', component: () => import('@/views/TermsView.vue') },
       {
+        path: '/privacy',
+        name: 'privacy',
+        component: () => import('@/views/TermsView.vue'),
+        props: { doc: 'privacy' },
+      },
+      {
         path: '/complaint',
         name: 'complaint',
         component: () => import('@/views/ComplaintView.vue'),
