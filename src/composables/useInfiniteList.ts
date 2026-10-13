@@ -66,14 +66,21 @@ export function useInfiniteList<T extends { id: string }>(
   // server: first page goes into the HTML; if it fails there, the client simply loads it
   if (ssr) onServerPrefetch(loadMore)
   onMounted(() => {
-    // server rendered anonymously (isFavorite=false): re-fetch page 1 with the token
-    if (ssr && page.value === 1 && hasSession())
+    // server rendered anonymously (locked, isFavorite=false): replace page 1 with the token's answer.
+    // Whole page, not a merge by id: the guest home feed puts open photos first, so a signed-in page 1
+    // holds other photos; a merge kept the guest's locked ones between two signed-in pages.
+    if (ssr && page.value === 1 && hasSession()) {
+      const guestCount = items.value.length
       fetchPage(1)
         .then((res) => {
-          const fresh = new Map(res.items.map((i) => [i.id, i]))
-          items.value = items.value.map((i) => fresh.get(i.id) ?? i)
+          const fresh = new Set(res.items.map((i) => i.id))
+          // pages 2+ loaded meanwhile already came with the token: keep them
+          const later = items.value.slice(guestCount).filter((i) => !fresh.has(i.id))
+          items.value = [...res.items, ...later]
+          total.value = res.total
         })
         .catch(() => {})
+    }
     // ponytail: native IntersectionObserver, no scroll listeners/libs
     observer = new IntersectionObserver((entries) => entries[0]?.isIntersecting && loadMore(), {
       rootMargin: '400px',
