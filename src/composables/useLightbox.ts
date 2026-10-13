@@ -25,6 +25,8 @@ export function useLightbox(
   loadMore: () => Promise<void>,
   toggleFavorite: (p: Photo) => Promise<unknown>,
   locked: (i: number) => boolean = () => false, // guest-blurred slides: thumb in blur + sign-in link
+  // element the zoom animation starts from; default: the grid thumb with that index
+  thumb = (i: number) => document.querySelector<HTMLElement>(`[data-pswp-index="${i}"]`),
 ) {
   const { t } = useI18n()
   const router = useRouter()
@@ -64,10 +66,7 @@ export function useLightbox(
       }
     })
     // zoom-in/out animation from/to the grid thumbnail
-    pswp.addFilter(
-      'thumbEl',
-      (el, _, idx) => document.querySelector<HTMLElement>(`[data-pswp-index="${idx}"]`) ?? el!,
-    )
+    pswp.addFilter('thumbEl', (el, _, idx) => thumb(idx) ?? el!)
     // wheel = next/prev slide (ctrl+wheel keeps PhotoSwipe's zoom).
     // ponytail: time lock vs trackpad inertia spam; tune WHEEL_LOCK if it feels sticky/jumpy
     let wheelAt = 0
@@ -120,7 +119,8 @@ export function useLightbox(
         onInit: (el, p) => {
           const sync = () => {
             const ph = photos.value[p.currIndex]
-            el.style.visibility = ph ? '' : 'hidden'
+            // hidden on the photo's own page: nowhere to go
+            el.style.visibility = ph && ph.id !== route.params.id ? '' : 'hidden'
             if (ph)
               el.setAttribute('href', router.resolve({ name: 'photo', params: { id: ph.id } }).href)
           }

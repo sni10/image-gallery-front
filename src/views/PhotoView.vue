@@ -1,5 +1,13 @@
 <script setup lang="ts">
-import { computed, onMounted, onServerPrefetch, onUnmounted, ref, useSSRContext } from 'vue'
+import {
+  computed,
+  onMounted,
+  onServerPrefetch,
+  onUnmounted,
+  ref,
+  useSSRContext,
+  useTemplateRef,
+} from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 import {
@@ -18,6 +26,8 @@ import { useSsrState } from '@/ssr'
 import BreadCrumbs from '@/components/BreadCrumbs.vue'
 import PhotoGrid from '@/components/PhotoGrid.vue'
 import { useCollectionPicker } from '@/composables/useCollectionPicker'
+import { useFavorite } from '@/composables/useFavorite'
+import { useLightbox } from '@/composables/useLightbox'
 
 // Own address of a photo (SEO, sharing). Description and tags go into <head> / microdata only.
 const props = defineProps<{ id: string }>()
@@ -69,6 +79,20 @@ const pick = useCollectionPicker()
 const locked = computed(() => !!photo.value && isLocked(photo.value, !me.value))
 const route = useRoute()
 const login = computed(() => ({ name: 'login', query: { next: route.fullPath } }))
+
+// the photo itself in the viewer (zoom, fullscreen); the click lands on the middle third, the sides are arrows
+const toggleFav = useFavorite()
+const imgEl = useTemplateRef<HTMLElement>('img')
+const viewing = ref<number | null>(null)
+useLightbox(
+  viewing,
+  computed(() => (photo.value ? [photo.value] : [])),
+  ref(1),
+  async () => {},
+  toggleFav,
+  () => false,
+  () => imgEl.value,
+)
 
 // ←/→ = the arrow links; not while typing or with modifiers (browser shortcuts)
 const router = useRouter()
@@ -147,6 +171,7 @@ const crumbs = computed(() => {
       />
       <img
         v-else
+        ref="img"
         :src="(photo.url ?? photo.thumbUrl)!"
         :alt="photo.title"
         :width="photo.width"
@@ -154,7 +179,8 @@ const crumbs = computed(() => {
         :itemprop="photo.url ? 'contentUrl' : undefined"
         @error="onImgError"
         class="mx-auto block h-auto max-h-[85vh] w-auto max-w-full rounded-box bg-base-300"
-        :class="{ 'scale-110 blur-2xl': locked }"
+        :class="locked ? 'scale-110 blur-2xl' : photo.url && 'cursor-zoom-in'"
+        @click="photo.url && !locked && (viewing = 0)"
       />
       <RouterLink
         v-if="locked"
@@ -208,7 +234,15 @@ const crumbs = computed(() => {
       >
         <li v-for="tag in photo.tags" :key="tag" class="badge badge-outline">#{{ tag }}</li>
       </ul>
-      <button type="button" class="btn btn-sm ml-auto" @click="pick(photo.id)">
+      <button
+        type="button"
+        class="btn btn-sm ml-auto aria-pressed:text-error"
+        :aria-pressed="photo.isFavorite"
+        @click="toggleFav(photo)"
+      >
+        ♥ {{ $t(photo.isFavorite ? 'favorites.remove' : 'favorites.add') }}
+      </button>
+      <button type="button" class="btn btn-sm" @click="pick(photo.id)">
         <svg
           viewBox="0 0 24 24"
           width="16"

@@ -74,6 +74,8 @@ describe('photo page lock from the API', () => {
     const r = await render('/photos/p1', 'age_ok=1')
     expect(r.html).toContain('src="https://api/p.png"')
     expect(r.html).not.toContain('blur-2xl')
+    expect(r.html).toContain('cursor-zoom-in') // opens the viewer
+    expect(r.html).toContain('Add to favorites')
   })
 })
 
