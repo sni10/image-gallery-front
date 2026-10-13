@@ -114,6 +114,12 @@
     "send": "Send",
     "sent": "Complaint sent. We will reply to {email}."
   },
+  "cookies": {
+    "title": "Cookies",
+    "text": "We use necessary cookies (age confirmation, sign-in) and, with your consent, a cookie that remembers your language. No ads or tracking.",
+    "accept": "Accept",
+    "decline": "Decline"
+  },
   "age": {
     "title": "18+ only",
     "text": "This site contains AI-generated adult content (NSFW). By entering you confirm that you are at least 18 years old (or the age of majority where you live), that viewing such content is legal for you, and that you enter of your own free will and take full responsibility for it.",
