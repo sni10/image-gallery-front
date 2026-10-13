@@ -6,6 +6,7 @@ import { ApiError, deletePhoto, isLocked, me, type Photo } from '@/api'
 import { errorMessage } from '@/i18n'
 import { useLightbox } from '@/composables/useLightbox'
 import { useFavorite } from '@/composables/useFavorite'
+import { useCollectionPicker } from '@/composables/useCollectionPicker'
 import MasonryGrid from '@/components/MasonryGrid.vue'
 
 // Masonry of photos + PhotoSwipe viewer. Each photo is schema.org ImageObject; the parent
@@ -28,6 +29,7 @@ const locked = (i: number) => {
 
 const current = ref<number | null>(null)
 const toggle = useFavorite()
+const pick = useCollectionPicker()
 useLightbox(current, toRef(props, 'items'), toRef(props, 'total'), props.loadMore, toggle, locked)
 
 const ratio = (p: Photo) => p.height / p.width
@@ -138,6 +140,28 @@ function open(e: MouseEvent, i: number) {
           @click="toggle(p)"
         >
           ♥
+        </button>
+        <!-- add to a collection: same reveal rules as the heart -->
+        <button
+          type="button"
+          class="btn btn-circle btn-sm absolute right-2 bottom-2 border-0 bg-black/45 text-white opacity-0 transition-opacity group-hover:opacity-100 focus-visible:opacity-100 [@media(hover:none)]:opacity-100"
+          :title="$t('collections.addTo')"
+          :aria-label="$t('collections.addTo')"
+          @click="pick(p.id)"
+        >
+          <svg
+            viewBox="0 0 24 24"
+            width="16"
+            height="16"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <path d="M6 3h12v18l-6-4-6 4zM12 7v6M9 10h6" />
+          </svg>
         </button>
         <meta itemprop="width" :content="String(p.width)" />
         <meta itemprop="height" :content="String(p.height)" />

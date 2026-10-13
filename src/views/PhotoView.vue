@@ -1,12 +1,33 @@
 <script setup lang="ts">
-import { computed, onMounted, onServerPrefetch, onUnmounted, ref, useSSRContext } from 'vue'
+import {
+  computed,
+  onMounted,
+  onServerPrefetch,
+  onUnmounted,
+  ref,
+  useSSRContext,
+  useTemplateRef,
+} from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
-import { ApiError, getPhoto, hasSession, isLocked, me, type PhotoDetail } from '@/api'
+import {
+  ApiError,
+  getPhoto,
+  getSimilar,
+  hasSession,
+  isLocked,
+  me,
+  type Photo,
+  type PhotoDetail,
+} from '@/api'
 import { errorMessage } from '@/i18n'
 import { usePageMeta } from '@/composables/usePageMeta'
 import { useSsrState } from '@/ssr'
 import BreadCrumbs from '@/components/BreadCrumbs.vue'
+import PhotoGrid from '@/components/PhotoGrid.vue'
+import { useCollectionPicker } from '@/composables/useCollectionPicker'
+import { useFavorite } from '@/composables/useFavorite'
+import { useLightbox } from '@/composables/useLightbox'
 
 // Own address of a photo (SEO, sharing). Description and tags go into <head> / microdata only.
 const props = defineProps<{ id: string }>()
@@ -34,6 +55,17 @@ function refresh() {
     () => {},
   )
 }
+// Similar photos under the main one: rendered on the server (internal links for crawlers).
+// An error just hides the block. Signed in: fetched again with the token, like the photo itself
+const similar = useSsrState<Photo[]>(`similar:${props.id}`, () => [])
+const loadSimilar = () =>
+  getSimilar(props.id).then(
+    (r) => (similar.value = r.items),
+    () => {},
+  )
+onServerPrefetch(loadSimilar)
+onMounted(() => (!similar.value.length || hasSession()) && loadSimilar())
+
 // the signed url expired while the page stayed open: one fresh fetch
 let refreshed = false
 function onImgError() {
@@ -43,14 +75,42 @@ function onImgError() {
 }
 
 // the API decides (url: null + locked); legacy API without `locked`: every guest gets the blur
+const pick = useCollectionPicker()
 const locked = computed(() => !!photo.value && isLocked(photo.value, !me.value))
 const route = useRoute()
 const login = computed(() => ({ name: 'login', query: { next: route.fullPath } }))
+
+// the photo itself in the viewer (zoom, fullscreen); the click lands on the middle third, the sides are arrows
+const toggleFav = useFavorite()
+const imgEl = useTemplateRef<HTMLElement>('img')
+const viewing = ref<number | null>(null)
+useLightbox(
+  viewing,
+  computed(() => (photo.value ? [photo.value] : [])),
+  ref(1),
+  async () => {},
+  toggleFav,
+  () => false,
+  () => imgEl.value,
+)
+
+// phones: the system share sheet; desktop: copy the link (the canonical one, no query)
+const copied = ref(false)
+async function share() {
+  const url = location.origin + location.pathname
+  // desktop Chrome has share() too, but a copied link is what people expect there
+  if (navigator.share && matchMedia('(pointer: coarse)').matches)
+    return navigator.share({ title: photo.value!.title, url }).catch(() => {}) // cancel = rejection
+  await navigator.clipboard.writeText(url)
+  copied.value = true
+  setTimeout(() => (copied.value = false), 2000)
+}
 
 // ←/→ = the arrow links; not while typing or with modifiers (browser shortcuts)
 const router = useRouter()
 function onKey(e: KeyboardEvent) {
   if (e.altKey || e.ctrlKey || e.metaKey || e.shiftKey) return
+  if (document.querySelector('.pswp')) return // the viewer of similar photos is open: its arrows
   const el = e.target
   if (el instanceof Element && el.closest('input, textarea, select, [contenteditable]')) return
   go({ ArrowLeft: photo.value?.prevId, ArrowRight: photo.value?.nextId }[e.key])
@@ -123,6 +183,7 @@ const crumbs = computed(() => {
       />
       <img
         v-else
+        ref="img"
         :src="(photo.url ?? photo.thumbUrl)!"
         :alt="photo.title"
         :width="photo.width"
@@ -130,7 +191,8 @@ const crumbs = computed(() => {
         :itemprop="photo.url ? 'contentUrl' : undefined"
         @error="onImgError"
         class="mx-auto block h-auto max-h-[85vh] w-auto max-w-full rounded-box bg-base-300"
-        :class="{ 'scale-110 blur-2xl': locked }"
+        :class="locked ? 'scale-110 blur-2xl' : photo.url && 'cursor-zoom-in'"
+        @click="photo.url && !locked && (viewing = 0)"
       />
       <RouterLink
         v-if="locked"
@@ -175,10 +237,50 @@ const crumbs = computed(() => {
         </span>
       </RouterLink>
     </div>
-    <!-- ponytail: plain badges for now; will link to photos by tag once the API has that list -->
-    <ul v-if="photo.tags.length" class="mt-4 flex flex-wrap gap-2" :aria-label="$t('photo.tags')">
-      <li v-for="tag in photo.tags" :key="tag" class="badge badge-outline">#{{ tag }}</li>
-    </ul>
+    <div class="mt-4 flex flex-wrap items-start gap-2">
+      <ul
+        v-if="photo.tags.length"
+        class="flex flex-1 flex-wrap gap-2"
+        :aria-label="$t('photo.tags')"
+      >
+        <li v-for="tag in photo.tags" :key="tag">
+          <RouterLink
+            :to="{ name: 'tag', params: { tag } }"
+            rel="tag"
+            class="badge badge-outline hover:badge-primary"
+          >
+            #{{ tag }}
+          </RouterLink>
+        </li>
+      </ul>
+      <button
+        type="button"
+        class="btn btn-sm ml-auto aria-pressed:text-error"
+        :aria-pressed="photo.isFavorite"
+        @click="toggleFav(photo)"
+      >
+        ♥ {{ $t(photo.isFavorite ? 'favorites.remove' : 'favorites.add') }}
+      </button>
+      <button type="button" class="btn btn-sm" @click="pick(photo.id)">
+        <svg
+          viewBox="0 0 24 24"
+          width="16"
+          height="16"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
+        >
+          <path d="M6 3h12v18l-6-4-6 4zM12 7v6M9 10h6" />
+        </svg>
+        {{ $t('collections.addTo') }}
+      </button>
+      <button type="button" class="btn btn-sm" @click="share">
+        {{ copied ? $t('photo.copied') : $t('photo.share') }}
+      </button>
+    </div>
     <meta v-if="photo.thumbUrl" itemprop="thumbnailUrl" :content="photo.thumbUrl" />
     <meta itemprop="width" :content="String(photo.width)" />
     <meta itemprop="height" :content="String(photo.height)" />
@@ -193,4 +295,13 @@ const crumbs = computed(() => {
       <span class="sr-only">{{ $t('common.loading') }}</span>
     </span>
   </div>
+  <section v-if="photo && similar.length" class="mt-10" aria-labelledby="similar-title">
+    <h2 id="similar-title" class="mb-4">{{ $t('photo.similar') }}</h2>
+    <PhotoGrid
+      :items="similar"
+      :total="similar.length"
+      :load-more="async () => {}"
+      :alt="(p) => p.title"
+    />
+  </section>
 </template>

@@ -22,9 +22,11 @@ export function pickLocale(cookie?: string): Locale {
   return LOCALES.includes(saved as Locale) ? (saved as Locale) : 'en'
 }
 
-// Client side, after a switch: cookie so the next server render uses it too.
+// Client side, after a switch: cookie so the next server render uses it too. Unless cookies were declined
+// (CookieBanner): then the choice lasts until reload.
 export function saveLocale(locale: Locale) {
-  document.cookie = `${COOKIE}=${locale}; path=/; max-age=31536000; samesite=lax`
+  if (!/(?:^|;\s*)cookies=no(?:;|$)/.test(document.cookie))
+    document.cookie = `${COOKIE}=${locale}; path=/; max-age=31536000; samesite=lax`
   document.documentElement.lang = locale
 }
 

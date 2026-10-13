@@ -7,6 +7,8 @@ import { useRoute } from 'vue-router'
 import { useCategories } from '@/composables/useCategories'
 import AgeGate from '@/components/AgeGate.vue'
 import ScrollTop from '@/components/ScrollTop.vue'
+import CookieBanner from '@/components/CookieBanner.vue'
+import CollectionPicker from '@/components/CollectionPicker.vue'
 
 const { categories } = useCategories()
 // native <details> dropdowns (categories on desktop, the whole menu on phones): close after navigating
@@ -70,6 +72,16 @@ function setLocale(l: Locale) {
               </RouterLink>
             </li>
           </template>
+          <li class="mt-1 border-t border-base-300 pt-1">
+            <RouterLink to="/terms" :class="{ 'menu-active': $route.path === '/terms' }">
+              {{ $t('nav.terms') }}
+            </RouterLink>
+          </li>
+          <li>
+            <RouterLink to="/privacy" :class="{ 'menu-active': $route.path === '/privacy' }">
+              {{ $t('nav.privacy') }}
+            </RouterLink>
+          </li>
         </ul>
       </details>
       <RouterLink to="/" class="btn btn-ghost px-2 text-lg font-bold max-sm:hidden">
@@ -109,8 +121,34 @@ function setLocale(l: Locale) {
             </ul>
           </details>
         </li>
+        <li>
+          <RouterLink to="/terms" :class="{ 'menu-active': $route.path === '/terms' }">
+            {{ $t('nav.terms') }}
+          </RouterLink>
+        </li>
+        <li>
+          <RouterLink to="/privacy" :class="{ 'menu-active': $route.path === '/privacy' }">
+            {{ $t('nav.privacy') }}
+          </RouterLink>
+        </li>
       </ul>
       <div class="flex-1" />
+      <RouterLink
+        to="/search"
+        class="btn btn-ghost btn-sm btn-square"
+        :class="{ 'btn-active': $route.path === '/search' }"
+        :title="$t('find.title')"
+        :aria-label="$t('find.title')"
+      >
+        <svg
+          viewBox="0 0 24 24"
+          class="size-5 fill-none stroke-current stroke-2 [stroke-linecap:round]"
+          aria-hidden="true"
+        >
+          <circle cx="11" cy="11" r="7" />
+          <path d="M20 20l-4-4" />
+        </svg>
+      </RouterLink>
       <!-- server and first client render are anonymous; the email appears once /me loads -->
       <RouterLink
         v-if="me"
@@ -143,5 +181,7 @@ function setLocale(l: Locale) {
     <RouterView :key="$route.fullPath" />
   </main>
   <ScrollTop />
+  <CookieBanner />
+  <CollectionPicker />
   <AgeGate />
 </template>

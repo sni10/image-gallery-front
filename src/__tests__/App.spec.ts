@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, afterEach } from 'vitest'
-import { ApiError, getGallery, logout } from '../api'
+import { ApiError, deleteAccount, getGallery, logout, register, TERMS_VERSION } from '../api'
 
 const respond = (status: number, body: unknown = {}) =>
   vi.stubGlobal(
@@ -36,6 +36,15 @@ describe('api errors', () => {
   })
 })
 
+describe('register', () => {
+  it('sends the accepted terms version', async () => {
+    respond(201, { email: 'a@b.c' })
+    await register('a@b.c', 'secret-pass')
+    const body = JSON.parse((vi.mocked(fetch).mock.calls[0]![1] as RequestInit).body as string)
+    expect(body).toMatchObject({ termsAccepted: true, termsVersion: TERMS_VERSION })
+  })
+})
+
 describe('session', () => {
   // routes fake API responses by path; records calls
   function api(routes: Record<string, () => Response>) {
@@ -65,6 +74,28 @@ describe('session', () => {
       'Bearer a2',
     ])
     expect(localStorage.getItem('refresh')).toBe('r2')
+  })
+
+  it('deleteAccount: DELETE /me with the password, then the session is gone; wrong password keeps it', async () => {
+    localStorage.setItem('refresh', 'r1')
+    const sent: unknown[] = []
+    let status = 400
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (url: string, init: RequestInit) => {
+        if (new URL(url).pathname === '/auth/refresh') return json({ access: 'a', refresh: 'r2' })
+        sent.push([init.method, new URL(url).pathname, JSON.parse(init.body as string)])
+        return status === 204
+          ? new Response(null, { status })
+          : json({ password: ['Wrong password.'] }, status)
+      }),
+    )
+    await expect(deleteAccount('bad')).rejects.toMatchObject({ status: 400 })
+    expect(localStorage.getItem('refresh')).not.toBeNull()
+    status = 204
+    await deleteAccount('good')
+    expect(sent[sent.length - 1]).toEqual(['DELETE', '/me', { password: 'good' }])
+    expect(localStorage.getItem('refresh')).toBeNull()
   })
 
   it('dead refresh drops the session and retries anonymously', async () => {

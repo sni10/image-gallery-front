@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { getRandomPhotos } from '@/api'
+import { useRoute } from 'vue-router'
+import { FEED_SORTS, getFeed, type FeedSort } from '@/api'
 import { useInfiniteList } from '@/composables/useInfiniteList'
 import { usePageMeta } from '@/composables/usePageMeta'
 import { useSsrState } from '@/ssr'
@@ -7,11 +8,17 @@ import PhotoGrid from '@/components/PhotoGrid.vue'
 
 usePageMeta(() => ({}))
 
+// ?sort=new|popular; random is the default and keeps the URL clean. A new sort = new URL = remount (App.vue key)
+const route = useRoute()
+const q = route.query.sort
+const sort: FeedSort = FEED_SORTS.includes(q as FeedSort) ? (q as FeedSort) : 'random'
+const sortLink = (s: FeedSort) => ({ query: s === 'random' ? {} : { sort: s } })
+
 // one seed per visit (made on the server, reused by the client) = stable random order while scrolling
 const seed = useSsrState('home:seed', () => Math.random().toString(36).slice(2, 12) || 'seed')
 const { items, total, loading, error, canRetry, empty, loadMore, remove } = useInfiniteList(
-  'home:photos',
-  (page) => getRandomPhotos(seed.value, page),
+  `home:photos:${sort}`,
+  (page) => getFeed(sort, seed.value, page),
 )
 import ListStatus from '@/components/ListStatus.vue'
 </script>
@@ -28,7 +35,22 @@ import ListStatus from '@/components/ListStatus.vue'
   </section>
 
   <section aria-labelledby="home-photos" itemscope itemtype="https://schema.org/CollectionPage">
-    <h2 id="home-photos" class="mb-4" itemprop="name">{{ $t('home.photos') }}</h2>
+    <div class="mb-4 flex flex-wrap items-center justify-between gap-2">
+      <h2 id="home-photos" class="m-0" itemprop="name">{{ $t(`home.sort.${sort}`) }}</h2>
+      <!-- links, not buttons: each order has its own URL (shareable, crawlable) -->
+      <nav class="join" :aria-label="$t('home.sortLabel')">
+        <RouterLink
+          v-for="s in FEED_SORTS"
+          :key="s"
+          :to="sortLink(s)"
+          class="btn join-item btn-sm"
+          :class="{ 'btn-active btn-primary': s === sort }"
+          :aria-current="s === sort ? 'page' : undefined"
+        >
+          {{ $t(`home.sortShort.${s}`) }}
+        </RouterLink>
+      </nav>
+    </div>
     <PhotoGrid
       :items="items"
       :total="total"

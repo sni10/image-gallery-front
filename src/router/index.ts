@@ -10,6 +10,20 @@ export function createRouter() {
     history: import.meta.env.SSR
       ? createMemoryHistory()
       : createWebHistory(import.meta.env.BASE_URL),
+    // new page: top. Back/forward: the old spot. Feeds keep their loaded pages in memory (useSsrState),
+    // but the view mounts and lays out a few frames later: wait until the page is tall enough (max 1 s)
+    scrollBehavior(_to, _from, saved) {
+      if (!saved) return { top: 0 }
+      const until = performance.now() + 1000
+      return new Promise((done) => {
+        const tick = () =>
+          document.documentElement.scrollHeight >= saved.top + innerHeight ||
+          performance.now() > until
+            ? done(saved)
+            : requestAnimationFrame(tick)
+        tick()
+      })
+    },
     routes: [
       { path: '/', name: 'home', component: HomeView },
       {
@@ -35,6 +49,25 @@ export function createRouter() {
         component: () => import('@/views/PhotoView.vue'),
         props: true,
       },
+      {
+        path: '/tags/:tag',
+        name: 'tag',
+        component: () => import('@/views/FindView.vue'),
+        props: true,
+      },
+      { path: '/search', name: 'search', component: () => import('@/views/FindView.vue') },
+      { path: '/terms', name: 'terms', component: () => import('@/views/TermsView.vue') },
+      {
+        path: '/privacy',
+        name: 'privacy',
+        component: () => import('@/views/TermsView.vue'),
+        props: { doc: 'privacy' },
+      },
+      {
+        path: '/complaint',
+        name: 'complaint',
+        component: () => import('@/views/ComplaintView.vue'),
+      },
       // account pages: noindex, data loaded on the client only (the server has no token)
       // guestOnly: a signed-in visitor is sent to the account page instead
       {
@@ -54,6 +87,17 @@ export function createRouter() {
       { path: '/confirm-email', component: ConfirmView },
       { path: '/confirm-email-change', component: ConfirmView, props: { change: true } },
       { path: '/account', name: 'account', component: () => import('@/views/AccountView.vue') },
+      {
+        path: '/account/collections',
+        name: 'collections',
+        component: () => import('@/views/CollectionsView.vue'),
+      },
+      {
+        path: '/account/collections/:id',
+        name: 'collection',
+        component: () => import('@/views/CollectionView.vue'),
+        props: true,
+      },
       {
         path: '/account/favorites',
         name: 'favorites',
