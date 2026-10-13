@@ -14,6 +14,7 @@ usePageMeta(() => ({ title: title.value, noindex: true }))
 
 const email = ref('')
 const password = ref('')
+const accepted = ref(false)
 const sent = ref(false) // confirmation email is on its way
 const unconfirmed = ref(false)
 // only local paths: ?next=//evil.com must not redirect off-site
@@ -87,6 +88,27 @@ async function resend() {
             :class="{ 'input-error': fields.password }"
           />
           <p v-if="fields.password" class="label text-error">{{ fields.password }}</p>
+        </fieldset>
+        <!-- required: the browser won't submit without it; the backend checks termsAccepted as well -->
+        <fieldset v-if="mode === 'register'" class="fieldset">
+          <label class="label cursor-pointer items-start gap-3 whitespace-normal text-base-content">
+            <input
+              v-model="accepted"
+              type="checkbox"
+              required
+              class="checkbox checkbox-sm checkbox-primary mt-0.5"
+              :class="{ 'checkbox-error': fields.termsAccepted }"
+            />
+            <i18n-t keypath="auth.agree" tag="span" scope="global">
+              <template #terms>
+                <!-- new tab: the filled-in form stays put -->
+                <RouterLink to="/terms" target="_blank" class="link link-primary">
+                  {{ $t('auth.termsLink') }}
+                </RouterLink>
+              </template>
+            </i18n-t>
+          </label>
+          <p v-if="fields.termsAccepted" class="label text-error">{{ fields.termsAccepted }}</p>
         </fieldset>
         <div v-if="error" class="alert alert-error" role="alert">{{ error }}</div>
         <div v-if="unconfirmed" class="alert alert-warning" role="alert">

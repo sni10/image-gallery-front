@@ -70,6 +70,11 @@ function setLocale(l: Locale) {
               </RouterLink>
             </li>
           </template>
+          <li class="mt-1 border-t border-base-300 pt-1">
+            <RouterLink to="/terms" :class="{ 'menu-active': $route.path === '/terms' }">
+              {{ $t('nav.terms') }}
+            </RouterLink>
+          </li>
         </ul>
       </details>
       <RouterLink to="/" class="btn btn-ghost px-2 text-lg font-bold max-sm:hidden">
@@ -108,6 +113,11 @@ function setLocale(l: Locale) {
               </li>
             </ul>
           </details>
+        </li>
+        <li>
+          <RouterLink to="/terms" :class="{ 'menu-active': $route.path === '/terms' }">
+            {{ $t('nav.terms') }}
+          </RouterLink>
         </li>
       </ul>
       <div class="flex-1" />

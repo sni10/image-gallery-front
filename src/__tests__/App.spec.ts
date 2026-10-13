@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, afterEach } from 'vitest'
-import { ApiError, getGallery, logout } from '../api'
+import { ApiError, getGallery, logout, register, TERMS_VERSION } from '../api'
 
 const respond = (status: number, body: unknown = {}) =>
   vi.stubGlobal(
@@ -33,6 +33,15 @@ describe('api errors', () => {
       vi.fn(async () => Promise.reject(new TypeError('Failed to fetch'))),
     )
     await expect(getGallery('1')).rejects.toMatchObject({ status: 0 })
+  })
+})
+
+describe('register', () => {
+  it('sends the accepted terms version', async () => {
+    respond(201, { email: 'a@b.c' })
+    await register('a@b.c', 'secret-pass')
+    const body = JSON.parse((vi.mocked(fetch).mock.calls[0]![1] as RequestInit).body as string)
+    expect(body).toMatchObject({ termsAccepted: true, termsVersion: TERMS_VERSION })
   })
 })
 

@@ -4,7 +4,7 @@
 # This only records the sha as FRONT_TAG in the server's .env, pulls the image and restarts the front service.
 set -euo pipefail
 
-SERVER=${DEPLOY_SERVER:-deploy@2.28.193.254}
+SERVER=${DEPLOY_SERVER:-deploy@198.98.52.9}
 DIR=${DEPLOY_DIR:-/srv/artai}
 SHA=${1:-}
 

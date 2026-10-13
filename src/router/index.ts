@@ -35,6 +35,7 @@ export function createRouter() {
         component: () => import('@/views/PhotoView.vue'),
         props: true,
       },
+      { path: '/terms', name: 'terms', component: () => import('@/views/TermsView.vue') },
       // account pages: noindex, data loaded on the client only (the server has no token)
       // guestOnly: a signed-in visitor is sent to the account page instead
       {
