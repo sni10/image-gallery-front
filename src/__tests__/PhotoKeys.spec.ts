@@ -23,6 +23,7 @@ it('arrow keys go to the gallery neighbours, not while typing', async () => {
   vi.stubGlobal(
     'fetch',
     vi.fn(async (url: string) => {
+      if (url.includes('/similar')) return new Response(JSON.stringify({ items: [] }))
       const id = new URL(url).pathname.split('/').pop()!
       return new Response(JSON.stringify(photo(id, id === 'b' ? 'a' : null, 'b')))
     }),

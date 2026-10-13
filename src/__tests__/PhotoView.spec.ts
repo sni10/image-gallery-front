@@ -16,10 +16,15 @@ const photo = {
   prevId: null,
   nextId: 'p2',
 }
-const respond = (status: number, body: unknown = {}) =>
+// /photos/{id}/similar answers with `similar`, anything else with `body`
+const respond = (status: number, body: unknown = {}, similar: unknown[] = []) =>
   vi.stubGlobal(
     'fetch',
-    vi.fn(async () => new Response(JSON.stringify(body), { status })),
+    vi.fn(async (url: string) =>
+      url.includes('/similar')
+        ? new Response(JSON.stringify({ items: similar }))
+        : new Response(JSON.stringify(body), { status }),
+    ),
   )
 
 afterEach(() => vi.unstubAllGlobals())
@@ -69,5 +74,19 @@ describe('photo page lock from the API', () => {
     const r = await render('/photos/p1', 'age_ok=1')
     expect(r.html).toContain('src="https://api/p.png"')
     expect(r.html).not.toContain('blur-2xl')
+  })
+})
+
+describe('similar photos', () => {
+  it('rendered on the server under the photo, as links to their pages', async () => {
+    respond(200, photo, [{ ...photo, id: 'p7', title: 'Neon dog' }])
+    const r = await render('/photos/p1', 'age_ok=1')
+    expect(r.html).toContain('id="similar-title"')
+    expect(r.html).toContain('href="/photos/p7"')
+  })
+
+  it('no similar photos: no block', async () => {
+    respond(200, photo)
+    expect((await render('/photos/p1', 'age_ok=1')).html).not.toContain('id="similar-title"')
   })
 })
