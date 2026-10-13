@@ -94,6 +94,18 @@ useLightbox(
   () => imgEl.value,
 )
 
+// phones: the system share sheet; desktop: copy the link (the canonical one, no query)
+const copied = ref(false)
+async function share() {
+  const url = location.origin + location.pathname
+  // desktop Chrome has share() too, but a copied link is what people expect there
+  if (navigator.share && matchMedia('(pointer: coarse)').matches)
+    return navigator.share({ title: photo.value!.title, url }).catch(() => {}) // cancel = rejection
+  await navigator.clipboard.writeText(url)
+  copied.value = true
+  setTimeout(() => (copied.value = false), 2000)
+}
+
 // ←/→ = the arrow links; not while typing or with modifiers (browser shortcuts)
 const router = useRouter()
 function onKey(e: KeyboardEvent) {
@@ -257,6 +269,9 @@ const crumbs = computed(() => {
           <path d="M6 3h12v18l-6-4-6 4zM12 7v6M9 10h6" />
         </svg>
         {{ $t('collections.addTo') }}
+      </button>
+      <button type="button" class="btn btn-sm" @click="share">
+        {{ copied ? $t('photo.copied') : $t('photo.share') }}
       </button>
     </div>
     <meta v-if="photo.thumbUrl" itemprop="thumbnailUrl" :content="photo.thumbUrl" />

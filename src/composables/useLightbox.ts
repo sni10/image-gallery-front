@@ -4,6 +4,7 @@ import 'photoswipe/style.css'
 import { getPhoto, type Photo } from '@/api'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
+import { pickerPhoto, useCollectionPicker } from '@/composables/useCollectionPicker'
 
 const PREFETCH = 5 // start loading next page when this close to the end of loaded photos
 const WHEEL_LOCK = 350 // ms between wheel-driven slide changes
@@ -12,6 +13,8 @@ const HEART =
   '<svg class="pswp__icn" viewBox="0 0 24 24" width="24" height="24"><path d="M12 21s-7.5-4.6-9.5-9.2C1.2 8.6 3.2 5 6.6 5c2 0 3.4 1.1 4.4 2.5C12 6.1 13.4 5 15.4 5c3.4 0 5.4 3.6 4.1 6.8C19.5 16.4 12 21 12 21z"/></svg>'
 const LINK =
   '<svg class="pswp__icn" viewBox="0 0 24 24" width="24" height="24" style="fill:none;stroke:var(--pswp-icon-color);stroke-width:2;stroke-linecap:round"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/></svg>'
+const BOOKMARK =
+  '<svg class="pswp__icn" viewBox="0 0 24 24" width="24" height="24" style="fill:none;stroke:var(--pswp-icon-color);stroke-width:2;stroke-linecap:round;stroke-linejoin:round"><path d="M6 3h12v18l-6-4-6 4zM12 7v6M9 10h6"/></svg>'
 const lockedSlide = (thumb: string | null, login: string, text: string) =>
   `<div style="position:relative;height:100%;overflow:hidden">${thumb ? `<img src="${encodeURI(thumb)}" alt="" style="width:100%;height:100%;object-fit:contain;filter:blur(32px);transform:scale(1.1)">` : ''}<a href="${login}" style="position:absolute;inset:0;display:grid;place-items:center;color:#fff;font:600 1.25rem sans-serif;text-shadow:0 1px 3px #000">🔒 ${text}</a></div>`
 const pending = (text: string) =>
@@ -31,6 +34,7 @@ export function useLightbox(
   const { t } = useI18n()
   const router = useRouter()
   const route = useRoute()
+  const pick = useCollectionPicker()
   let pswp: PhotoSwipe | null = null
 
   const loginHref = () => router.resolve({ name: 'login', query: { next: route.fullPath } }).href
@@ -134,6 +138,36 @@ export function useLightbox(
         },
       })
     })
+    // add to a collection: the picker dialog opens over the viewer
+    pswp.on('uiRegister', () => {
+      pswp!.ui!.registerElement({
+        name: 'collect',
+        order: 9,
+        isButton: true,
+        title: t('collections.addTo'),
+        html: BOOKMARK,
+        onInit: (el, p) => {
+          const sync = () => (el.style.visibility = photos.value[p.currIndex] ? '' : 'hidden')
+          p.on('change', sync)
+          sync()
+        },
+        onClick: (_, __, p) => {
+          const ph = photos.value[p.currIndex]
+          if (ph) pick(ph.id)
+        },
+      })
+    })
+    // F = heart, C = collection. While the picker is open, its keys (Esc, typing) are not the viewer's
+    pswp.on('keydown', (e) => {
+      const ev = e.originalEvent
+      if (pickerPhoto.value) return e.preventDefault()
+      if (ev.altKey || ev.ctrlKey || ev.metaKey || ev.shiftKey) return
+      const ph = photos.value[pswp!.currIndex]
+      if (!ph) return
+      if (ev.code === 'KeyF')
+        pswp!.element?.querySelector<HTMLElement>('.pswp__button--fav')?.click()
+      else if (ev.code === 'KeyC') pick(ph.id)
+    })
     pswp.on('change', prefetch)
     pswp.on('afterInit', prefetch)
     // signed url expired while the page stayed open: fetch a fresh one once per photo and reload the slide
@@ -149,7 +183,14 @@ export function useLightbox(
         })
         .catch(() => {})
     })
+    // the viewer pulls focus back into itself (trapFocus): let an open <dialog> (the picker) keep it
+    const dialogFocus = (e: FocusEvent) =>
+      e.target instanceof Element &&
+      e.target.closest('dialog[open]') &&
+      e.stopImmediatePropagation()
+    document.addEventListener('focusin', dialogFocus, true)
     pswp.on('destroy', () => {
+      document.removeEventListener('focusin', dialogFocus, true)
       pswp = null
       index.value = null
     })

@@ -134,7 +134,9 @@
     "next": "Next photo",
     "tags": "Tags",
     "locked": "Sign in to see this photo",
-    "similar": "Similar photos"
+    "similar": "Similar photos",
+    "share": "Share",
+    "copied": "Link copied"
   },
   "complaint": {
     "title": "Complaint",
