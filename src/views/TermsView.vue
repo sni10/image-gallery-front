@@ -25,6 +25,9 @@ const updated = computed(() =>
     <section v-for="(s, i) in sections" :key="i">
       <h2 class="mb-2 text-xl font-semibold">{{ rt(s.title) }}</h2>
       <p>{{ rt(s.body) }}</p>
+      <RouterLink v-if="s.link" to="/complaint" class="link link-primary mt-2 inline-block">
+        {{ rt(s.link) }}
+      </RouterLink>
     </section>
   </article>
 </template>

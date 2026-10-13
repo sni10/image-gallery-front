@@ -105,6 +105,15 @@
     "tags": "Tags",
     "locked": "Sign in to see this photo"
   },
+  "complaint": {
+    "title": "Complaint",
+    "intro": "Think an image resembles you or infringes your rights? Describe the image and the reason. We will reply to your email.",
+    "email": "Your email",
+    "photoUrl": "Link to the image (optional)",
+    "message": "What is wrong",
+    "send": "Send",
+    "sent": "Complaint sent. We will reply to {email}."
+  },
   "age": {
     "title": "18+ only",
     "text": "This site contains AI-generated adult content (NSFW). By entering you confirm that you are at least 18 years old (or the age of majority where you live), that viewing such content is legal for you, and that you enter of your own free will and take full responsibility for it.",
@@ -146,7 +155,8 @@
       },
       {
         "title": "8. Complaints and removal",
-        "body": "If you believe an image resembles you or infringes your rights, contact the Site administration and describe the image and the reason. We will review the request and remove the content if it is justified, even though all models are fictional."
+        "link": "Complaint form",
+        "body": "If you believe an image resembles you or infringes your rights, send a complaint to the Site administration through the form, describing the image and the reason. We will review the request and remove the content if it is justified, even though all models are fictional."
       },
       {
         "title": "9. Limitation of liability",

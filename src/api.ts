@@ -201,6 +201,11 @@ export const register = (email: string, password: string) =>
     termsVersion: TERMS_VERSION,
   })
 
+// Complaint about content, emailed to the admin by the backend (SPEC-complaints.md in the backend repo).
+// 400 field errors (email / photoUrl / message); 429 = rate limit
+export const sendComplaint = (email: string, photoUrl: string, message: string) =>
+  post<void>('/complaints', { email, photoUrl, message })
+
 export const resendConfirmation = (email: string) =>
   post<void>('/auth/resend-confirmation', { email })
 

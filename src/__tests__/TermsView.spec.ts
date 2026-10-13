@@ -20,6 +20,14 @@ describe('terms', () => {
     expect(r.status).toBe(200)
     expect(r.head).toContain(`<title>${messages.terms.title} · ArtAI.win</title>`)
     for (const s of messages.terms.sections) expect(r.html).toContain(s.title)
+    expect(r.html).toContain('href="/complaint"')
+  })
+
+  it('complaint form: never shows the admin address, posts to the API', async () => {
+    const r = await render('/complaint', 'age_ok=1')
+    expect(r.status).toBe(200)
+    expect(r.html).toMatch(/<textarea[^>]*required/)
+    expect(r.html).not.toContain('@proton.me')
   })
 
   it('sign-up form has a required checkbox linking to /terms', async () => {
