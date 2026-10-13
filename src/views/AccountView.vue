@@ -68,6 +68,9 @@ async function signOut() {
           <RouterLink class="btn flex-1" to="/account/favorites">
             ♥ {{ $t('favorites.title') }}
           </RouterLink>
+          <RouterLink class="btn flex-1" to="/account/collections">
+            {{ $t('collections.title') }}
+          </RouterLink>
           <button type="button" class="btn btn-outline btn-error flex-1" @click="signOut">
             {{ $t('account.logout') }}
           </button>

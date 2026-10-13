@@ -8,6 +8,7 @@ import { useCategories } from '@/composables/useCategories'
 import AgeGate from '@/components/AgeGate.vue'
 import ScrollTop from '@/components/ScrollTop.vue'
 import CookieBanner from '@/components/CookieBanner.vue'
+import CollectionPicker from '@/components/CollectionPicker.vue'
 
 const { categories } = useCategories()
 // native <details> dropdowns (categories on desktop, the whole menu on phones): close after navigating
@@ -165,5 +166,6 @@ function setLocale(l: Locale) {
   </main>
   <ScrollTop />
   <CookieBanner />
+  <CollectionPicker />
   <AgeGate />
 </template>

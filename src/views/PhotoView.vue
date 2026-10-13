@@ -2,11 +2,22 @@
 import { computed, onMounted, onServerPrefetch, onUnmounted, ref, useSSRContext } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
-import { ApiError, getPhoto, hasSession, isLocked, me, type PhotoDetail } from '@/api'
+import {
+  ApiError,
+  getPhoto,
+  getSimilar,
+  hasSession,
+  isLocked,
+  me,
+  type Photo,
+  type PhotoDetail,
+} from '@/api'
 import { errorMessage } from '@/i18n'
 import { usePageMeta } from '@/composables/usePageMeta'
 import { useSsrState } from '@/ssr'
 import BreadCrumbs from '@/components/BreadCrumbs.vue'
+import PhotoGrid from '@/components/PhotoGrid.vue'
+import { useCollectionPicker } from '@/composables/useCollectionPicker'
 
 // Own address of a photo (SEO, sharing). Description and tags go into <head> / microdata only.
 const props = defineProps<{ id: string }>()
@@ -34,6 +45,17 @@ function refresh() {
     () => {},
   )
 }
+// Similar photos under the main one: rendered on the server (internal links for crawlers).
+// An error just hides the block. Signed in: fetched again with the token, like the photo itself
+const similar = useSsrState<Photo[]>(`similar:${props.id}`, () => [])
+const loadSimilar = () =>
+  getSimilar(props.id).then(
+    (r) => (similar.value = r.items),
+    () => {},
+  )
+onServerPrefetch(loadSimilar)
+onMounted(() => (!similar.value.length || hasSession()) && loadSimilar())
+
 // the signed url expired while the page stayed open: one fresh fetch
 let refreshed = false
 function onImgError() {
@@ -43,6 +65,7 @@ function onImgError() {
 }
 
 // the API decides (url: null + locked); legacy API without `locked`: every guest gets the blur
+const pick = useCollectionPicker()
 const locked = computed(() => !!photo.value && isLocked(photo.value, !me.value))
 const route = useRoute()
 const login = computed(() => ({ name: 'login', query: { next: route.fullPath } }))
@@ -51,6 +74,7 @@ const login = computed(() => ({ name: 'login', query: { next: route.fullPath } }
 const router = useRouter()
 function onKey(e: KeyboardEvent) {
   if (e.altKey || e.ctrlKey || e.metaKey || e.shiftKey) return
+  if (document.querySelector('.pswp')) return // the viewer of similar photos is open: its arrows
   const el = e.target
   if (el instanceof Element && el.closest('input, textarea, select, [contenteditable]')) return
   go({ ArrowLeft: photo.value?.prevId, ArrowRight: photo.value?.nextId }[e.key])
@@ -175,10 +199,32 @@ const crumbs = computed(() => {
         </span>
       </RouterLink>
     </div>
-    <!-- ponytail: plain badges for now; will link to photos by tag once the API has that list -->
-    <ul v-if="photo.tags.length" class="mt-4 flex flex-wrap gap-2" :aria-label="$t('photo.tags')">
-      <li v-for="tag in photo.tags" :key="tag" class="badge badge-outline">#{{ tag }}</li>
-    </ul>
+    <div class="mt-4 flex flex-wrap items-start gap-2">
+      <!-- ponytail: plain badges for now; will link to photos by tag once the API has that list -->
+      <ul
+        v-if="photo.tags.length"
+        class="flex flex-1 flex-wrap gap-2"
+        :aria-label="$t('photo.tags')"
+      >
+        <li v-for="tag in photo.tags" :key="tag" class="badge badge-outline">#{{ tag }}</li>
+      </ul>
+      <button type="button" class="btn btn-sm ml-auto" @click="pick(photo.id)">
+        <svg
+          viewBox="0 0 24 24"
+          width="16"
+          height="16"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
+        >
+          <path d="M6 3h12v18l-6-4-6 4zM12 7v6M9 10h6" />
+        </svg>
+        {{ $t('collections.addTo') }}
+      </button>
+    </div>
     <meta v-if="photo.thumbUrl" itemprop="thumbnailUrl" :content="photo.thumbUrl" />
     <meta itemprop="width" :content="String(photo.width)" />
     <meta itemprop="height" :content="String(photo.height)" />
@@ -193,4 +239,13 @@ const crumbs = computed(() => {
       <span class="sr-only">{{ $t('common.loading') }}</span>
     </span>
   </div>
+  <section v-if="photo && similar.length" class="mt-10" aria-labelledby="similar-title">
+    <h2 id="similar-title" class="mb-4">{{ $t('photo.similar') }}</h2>
+    <PhotoGrid
+      :items="similar"
+      :total="similar.length"
+      :load-more="async () => {}"
+      :alt="(p) => p.title"
+    />
+  </section>
 </template>

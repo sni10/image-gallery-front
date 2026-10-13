@@ -67,6 +67,17 @@ export function createRouter() {
       { path: '/confirm-email-change', component: ConfirmView, props: { change: true } },
       { path: '/account', name: 'account', component: () => import('@/views/AccountView.vue') },
       {
+        path: '/account/collections',
+        name: 'collections',
+        component: () => import('@/views/CollectionsView.vue'),
+      },
+      {
+        path: '/account/collections/:id',
+        name: 'collection',
+        component: () => import('@/views/CollectionView.vue'),
+        props: true,
+      },
+      {
         path: '/account/favorites',
         name: 'favorites',
         component: () => import('@/views/FavoritesView.vue'),

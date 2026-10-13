@@ -46,6 +46,17 @@ export interface Page<T> {
   total: number
 }
 
+// Private photo folders of the signed-in user (Pinterest-like boards)
+export interface Collection {
+  id: string
+  title: string // 1–100 chars
+  photosCount: number
+}
+export interface CollectionCard extends Collection {
+  cover: Photo | null // the last added photo
+  hasPhoto?: boolean // only with getCollections(photoId): is that photo in it
+}
+
 export interface Me {
   id: string
   email: string
@@ -172,9 +183,16 @@ export const getGalleryPhotos = (id: string, page = 1, limit = 20) =>
 
 export const getPhoto = (id: string) => get<PhotoDetail>(`/photos/${encodeURIComponent(id)}`)
 
-// Photos of all galleries in random order; same seed = stable order across pages.
-export const getRandomPhotos = (seed: string, page = 1, limit = 20) =>
-  get<Page<Photo>>(`/photos?seed=${seed}&page=${page}&limit=${limit}`)
+// The home feed: photos of all galleries. random: same seed = stable order across pages;
+// new / popular (most favorited) ignore the seed.
+export const FEED_SORTS = ['random', 'new', 'popular'] as const
+export type FeedSort = (typeof FEED_SORTS)[number]
+export const getFeed = (sort: FeedSort, seed: string, page = 1, limit = 20) =>
+  get<Page<Photo>>(`/photos?sort=${sort}&seed=${seed}&page=${page}&limit=${limit}`)
+
+// Photos like this one (tags now, maybe colors later: the API decides). No pagination.
+export const getSimilar = (id: string, limit = 12) =>
+  get<{ items: Photo[] }>(`/photos/${encodeURIComponent(id)}/similar?limit=${limit}`)
 
 // --- account ---
 
@@ -248,3 +266,28 @@ export const deletePhoto = (id: string) =>
 // recently added first
 export const getFavorites = (page = 1, limit = 20) =>
   get<Page<Photo>>(`/me/favorites?page=${page}&limit=${limit}`)
+
+// --- collections (all need a session; someone else's collection = 404) ---
+
+// recently changed first. 400 {code: 'limit'}: 100 collections / 1000 photos per collection
+export const getCollections = (photoId?: string) =>
+  get<CollectionCard[]>(
+    '/me/collections' + (photoId ? `?photo=${encodeURIComponent(photoId)}` : ''),
+  )
+export const createCollection = (title: string) =>
+  post<CollectionCard>('/me/collections', { title })
+export const renameCollection = (id: string, title: string) =>
+  request<CollectionCard>('PATCH', `/me/collections/${encodeURIComponent(id)}`, { title })
+export const deleteCollection = (id: string) =>
+  request<void>('DELETE', `/me/collections/${encodeURIComponent(id)}`)
+export const getCollection = (id: string) =>
+  get<Collection>(`/me/collections/${encodeURIComponent(id)}`)
+// recently added first
+export const getCollectionPhotos = (id: string, page = 1, limit = 20) =>
+  get<Page<Photo>>(`/me/collections/${encodeURIComponent(id)}/photos?page=${page}&limit=${limit}`)
+// both idempotent: adding twice / removing a missing one is still 204
+export const setInCollection = (id: string, photoId: string, on: boolean) =>
+  request<void>(
+    on ? 'PUT' : 'DELETE',
+    `/me/collections/${encodeURIComponent(id)}/photos/${encodeURIComponent(photoId)}`,
+  )

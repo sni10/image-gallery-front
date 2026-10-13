@@ -17,9 +17,19 @@
   "home": {
     "tagline": "Photos, organized into galleries.",
     "cta": "Browse galleries",
-    "photos": "Random photos",
     "photoAlt": "Photo {n}",
-    "empty": "No photos yet"
+    "empty": "No photos yet",
+    "sort": {
+      "random": "Random photos",
+      "new": "New photos",
+      "popular": "Popular photos"
+    },
+    "sortShort": {
+      "random": "Random",
+      "new": "New",
+      "popular": "Popular"
+    },
+    "sortLabel": "Sort photos"
   },
   "catalog": {
     "title": "Galleries",
@@ -103,6 +113,19 @@
     "add": "Add to favorites",
     "remove": "Remove from favorites"
   },
+  "collections": {
+    "title": "Collections",
+    "addTo": "Add to collection",
+    "none": "No collections yet. Create the first one:",
+    "newTitle": "New collection",
+    "create": "Create",
+    "limit": "Limit reached: up to 100 collections, up to 1000 photos in each",
+    "empty": "No collections yet. Create one here or with the bookmark button on any photo.",
+    "emptyOne": "No photos here yet. Add them with the bookmark button on any photo.",
+    "rename": "Rename",
+    "delete": "Delete collection",
+    "deleteConfirm": "Delete for good?"
+  },
   "photo": {
     "delete": "Delete photo",
     "deleteConfirm": "Delete this photo for good?",
@@ -110,7 +133,8 @@
     "prev": "Previous photo",
     "next": "Next photo",
     "tags": "Tags",
-    "locked": "Sign in to see this photo"
+    "locked": "Sign in to see this photo",
+    "similar": "Similar photos"
   },
   "complaint": {
     "title": "Complaint",
@@ -192,7 +216,7 @@
       },
       {
         "title": "2. What we collect",
-        "body": "Account: email, password (stored only as a one-way hash, we never see it), sign-up date, the date and version of the Terms you accepted, your favorites.\nComplaints: the email, link and message you send, plus your IP address, browser (User-Agent) and time.\nServer logs: IP address, browser and requested pages.\nWe do not collect payment data and use no analytics, advertising trackers or third-party scripts."
+        "body": "Account: email, password (stored only as a one-way hash, we never see it), sign-up date, the date and version of the Terms you accepted, your favorites and collections.\nComplaints: the email, link and message you send, plus your IP address, browser (User-Agent) and time.\nServer logs: IP address, browser and requested pages.\nWe do not collect payment data and use no analytics, advertising trackers or third-party scripts."
       },
       {
         "title": "3. Why we use it",
@@ -213,7 +237,7 @@
       },
       {
         "title": "7. How long we keep it",
-        "body": "Account and favorites: until you delete the account.\nComplaints: up to 3 years, then deleted.\nServer logs: up to 30 days."
+        "body": "Account, favorites and collections: until you delete the account.\nComplaints: up to 3 years, then deleted.\nServer logs: up to 30 days."
       },
       {
         "title": "8. Your rights",
