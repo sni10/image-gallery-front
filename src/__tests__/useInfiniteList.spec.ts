@@ -48,7 +48,9 @@ it('signed in: the anonymous server page 1 is replaced whole, even when the toke
   localStorage.setItem('refresh', 'r')
   // guest home feed: open photos first; signed in: other photos on page 1, none locked
   const state = { t: { items: [{ id: 'open' }, { id: 'shut', locked: true }], total: 4, page: 1 } }
-  const fetchPage = vi.fn(async () => ({ items: [{ id: 'x' }, { id: 'open' }], total: 4 }))
+  const fetchPage = vi.fn<(page: number) => Promise<Page<{ id: string; locked?: boolean }>>>(
+    async () => ({ items: [{ id: 'x' }, { id: 'open' }], total: 4 }),
+  )
   let list!: ReturnType<typeof useInfiniteList<{ id: string; locked?: boolean }>>
   mount(
     defineComponent({
