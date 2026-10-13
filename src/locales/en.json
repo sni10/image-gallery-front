@@ -90,7 +90,11 @@
     "currentPassword": "Current password",
     "newPassword": "New password",
     "passwordChanged": "Password changed, other devices are signed out",
-    "save": "Save"
+    "save": "Save",
+    "deleteAccount": "Delete account",
+    "deleteWarning": "Your account, favorites and sessions are deleted for good. This cannot be undone.",
+    "deleteConfirm": "I understand that the account cannot be restored",
+    "deleteStaff": "Admin accounts cannot be deleted here"
   },
   "favorites": {
     "title": "Favorites",
@@ -196,16 +200,16 @@
       },
       {
         "title": "4. Cookies and local storage",
-        "body": "age_ok: remembers that you confirmed you are 18+. Necessary, 1 year.\ncookies: remembers your answer to the cookie banner. Necessary, 1 year.\nlocale: remembers your language. Only if you accept cookies, 1 year.\nrefresh (browser local storage): keeps you signed in. Necessary, removed when you sign out.\nYou can change your choice at any time:",
+        "body": "age_ok: remembers that you confirmed you are 18+. Necessary, 1 year.\ncookies: remembers your answer to the cookie banner. Necessary, 1 year.\nlocale: remembers your language. Only if you accept cookies, 1 year.\nSecurity cookies of our protection service (for example __cf_bm): tell people from bots. Necessary, up to 30 minutes.\nrefresh (browser local storage): keeps you signed in. Necessary, removed when you sign out.\nYou can change your choice at any time:",
         "cookies": "Change cookie choice"
       },
       {
         "title": "5. Who receives your data",
-        "body": "Hosting: BuyVM (Frantech Solutions), our server is located in the USA.\nEmail delivery: Brevo (Sendinblue SAS, France).\nThey process data only to run the Site. We do not sell your data and do not share it for advertising. We disclose data to authorities only when the law requires it."
+        "body": "Only service providers that run the Site for us: hosting, protection against attacks and email delivery. They process data on our instructions and only to run the Site. We do not sell your data and do not share it for advertising. We disclose data to authorities only when the law requires it."
       },
       {
         "title": "6. Transfer outside the EU",
-        "body": "Our server is in the USA, so data of visitors from the EU and the UK is transferred to and stored in the USA, where data protection law differs from the EU. We collect as little data as possible to keep this risk low."
+        "body": "Our servers may be located outside the EU/EEA, for example in the USA, so data of visitors from the EU and the UK may be processed there. We collect as little data as possible."
       },
       {
         "title": "7. How long we keep it",
@@ -213,7 +217,7 @@
       },
       {
         "title": "8. Your rights",
-        "body": "You may ask us to show, correct, delete or export your data, object to its use, or withdraw consent. Send the request through the contact form from the email of your account; we answer within 30 days. You may also complain to the data protection authority of your country.\nCalifornia residents: we do not sell or share personal information.",
+        "body": "You may ask us to show, correct, delete or export your data, object to its use, or withdraw consent. You can delete your account yourself on the Account page. For other requests, write through the contact form from the email of your account; we answer within 30 days. You may also complain to the data protection authority of your country.\nCalifornia residents: we do not sell or share personal information.",
         "link": "Contact form"
       },
       {

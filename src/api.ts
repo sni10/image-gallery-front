@@ -231,6 +231,13 @@ export async function logout() {
   clearTokens()
 }
 
+// For good: account, favorites, sessions (SPEC-privacy.md in the backend repo).
+// 400 {password} = wrong password; 403 = staff accounts can't be deleted this way
+export async function deleteAccount(password: string) {
+  await request<void>('DELETE', '/me', { password })
+  clearTokens()
+}
+
 export const setFavorite = (photoId: string, on: boolean) =>
   request<void>(on ? 'PUT' : 'DELETE', `/me/favorites/${encodeURIComponent(photoId)}`)
 

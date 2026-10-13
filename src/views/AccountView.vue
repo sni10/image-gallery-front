@@ -2,7 +2,7 @@
 import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { changeEmail, changePassword, getMe, hasSession, logout, me } from '@/api'
+import { changeEmail, changePassword, deleteAccount, getMe, hasSession, logout, me } from '@/api'
 import { usePageMeta } from '@/composables/usePageMeta'
 import { useSubmit } from '@/composables/useSubmit'
 
@@ -33,6 +33,12 @@ const passwordForm = useSubmit(async () => {
   await changePassword(currentPassword.value, newPassword.value)
   currentPassword.value = newPassword.value = ''
   passwordDone.value = true
+})
+
+const deletePassword = ref('')
+const deleteForm = useSubmit(async () => {
+  await deleteAccount(deletePassword.value)
+  location.assign('/') // signed out by deleteAccount; full load drops the user's cached lists
 })
 
 async function signOut() {
@@ -166,6 +172,47 @@ async function signOut() {
         <div class="card-actions justify-end">
           <button class="btn btn-primary" :disabled="passwordForm.busy.value">
             {{ $t('account.save') }}
+          </button>
+        </div>
+      </div>
+    </form>
+
+    <!-- GDPR right to erasure. Required checkbox instead of confirm(): no blocking browser dialog.
+         Staff can't delete themselves (API: 403), so they get the reason instead of the form -->
+    <p v-if="me?.isAdmin" class="text-sm text-base-content/60">{{ $t('account.deleteStaff') }}</p>
+    <form
+      v-else
+      class="card border border-error/40 bg-base-200"
+      @submit.prevent="deleteForm.submit"
+    >
+      <div class="card-body gap-2">
+        <h2 class="card-title text-error">{{ $t('account.deleteAccount') }}</h2>
+        <p class="text-sm">{{ $t('account.deleteWarning') }}</p>
+        <fieldset class="fieldset">
+          <label class="fieldset-legend" for="delete-password">{{ $t('auth.password') }}</label>
+          <input
+            id="delete-password"
+            v-model="deletePassword"
+            type="password"
+            required
+            autocomplete="current-password"
+            class="input w-full"
+            :class="{ 'input-error': deleteForm.fields.value.password }"
+          />
+          <p v-if="deleteForm.fields.value.password" class="label text-error">
+            {{ deleteForm.fields.value.password }}
+          </p>
+        </fieldset>
+        <label class="label cursor-pointer gap-3 whitespace-normal text-base-content">
+          <input type="checkbox" required class="checkbox checkbox-sm checkbox-error" />
+          {{ $t('account.deleteConfirm') }}
+        </label>
+        <div v-if="deleteForm.error.value" class="alert alert-error" role="alert">
+          {{ deleteForm.error.value }}
+        </div>
+        <div class="card-actions justify-end">
+          <button class="btn btn-error" :disabled="deleteForm.busy.value">
+            {{ $t('account.deleteAccount') }}
           </button>
         </div>
       </div>
