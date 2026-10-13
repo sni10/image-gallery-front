@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import { onMounted, ref, useTemplateRef } from 'vue'
+import { onMounted, onServerPrefetch, ref, useTemplateRef } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
-import { getFeed } from '@/api'
+import { getFeed, getTags } from '@/api'
+import { useSsrState } from '@/ssr'
 import { useInfiniteList } from '@/composables/useInfiniteList'
 import { usePageMeta } from '@/composables/usePageMeta'
 import PhotoGrid from '@/components/PhotoGrid.vue'
@@ -35,6 +36,17 @@ const { items, total, loading, error, canRetry, empty, loadMore, remove } = useI
       : Promise.resolve({ items: [], total: 0 }),
 )
 
+// tags met on the same photos, most shared first; rendered on the server; an error just hides the row
+const related = useSsrState<{ tag: string; count: number }[]>(`related:${props.tag}`, () => [])
+const loadRelated = () =>
+  props.tag &&
+  getTags(props.tag).then(
+    (r) => (related.value = r.items),
+    () => {},
+  )
+onServerPrefetch(loadRelated)
+onMounted(() => !related.value.length && loadRelated())
+
 const text = ref(q)
 const input = useTemplateRef<HTMLInputElement>('input')
 onMounted(() => !q && input.value?.focus()) // came from the header icon: type right away
@@ -43,9 +55,22 @@ const submit = () => router.push({ name: 'search', query: { q: text.value.trim()
 
 <template>
   <section aria-labelledby="find-title" itemscope itemtype="https://schema.org/CollectionPage">
-    <h1 id="find-title" itemprop="name">
-      {{ searching ? $t('find.title') : `#${tag}` }}
-    </h1>
+    <h1 v-if="searching" id="find-title" itemprop="name">{{ $t('find.title') }}</h1>
+    <!-- the tag, then related tags in the same row (links: crawlers walk from tag to tag) -->
+    <div v-else class="mb-6 flex flex-wrap items-baseline gap-x-3 gap-y-2">
+      <h1 id="find-title" class="m-0" itemprop="name">#{{ tag }}</h1>
+      <nav v-if="related.length" class="contents" :aria-label="$t('find.related')">
+        <RouterLink
+          v-for="r in related"
+          :key="r.tag"
+          :to="{ name: 'tag', params: { tag: r.tag } }"
+          rel="tag"
+          class="badge badge-outline hover:badge-primary"
+        >
+          #{{ r.tag }}
+        </RouterLink>
+      </nav>
+    </div>
     <!-- a real GET form: works before hydration too -->
     <form
       v-if="searching"

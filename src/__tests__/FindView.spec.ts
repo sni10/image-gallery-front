@@ -9,6 +9,8 @@ beforeEach(() => {
     'fetch',
     vi.fn(async (url: string) => {
       urls.push(url)
+      if (url.includes('/tags?'))
+        return new Response(JSON.stringify({ items: [{ tag: 'night', count: 3 }] }))
       return new Response(JSON.stringify(url.includes('/photos') ? { items: [], total: 0 } : []))
     }),
   )
@@ -22,6 +24,8 @@ it('tag page: newest photos with that tag, indexable', async () => {
   expect(feed()[0]).toContain('tag=neon')
   expect(r.head).toContain('<title>#neon · ArtAI.win</title>')
   expect(r.head).not.toContain('noindex')
+  expect(urls.some((u) => u.includes('/tags?limit=20&related=neon'))).toBe(true)
+  expect(r.html).toContain('href="/tags/night"') // related tags in the row
 })
 
 it('search: popular first with q, noindex; under 2 chars no request', async () => {

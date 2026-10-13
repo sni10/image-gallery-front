@@ -20,7 +20,8 @@
     "go": "Search",
     "results": "Search: {q}",
     "empty": "Nothing found",
-    "tagDescription": "Photos tagged #{tag}"
+    "tagDescription": "Photos tagged #{tag}",
+    "related": "Related tags"
   },
   "home": {
     "tagline": "Photos, organized into galleries.",

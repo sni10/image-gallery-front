@@ -199,6 +199,12 @@ export const getFeed = (
     `/photos?${new URLSearchParams({ sort, seed, page: String(page), limit: String(limit), ...filter })}`,
   )
 
+// related: tags found on the same photos as this one (count = shared photos); none: most used tags
+export const getTags = (related?: string, limit = 20) =>
+  get<{ items: { tag: string; count: number }[] }>(
+    `/tags?${new URLSearchParams({ limit: String(limit), ...(related ? { related } : {}) })}`,
+  )
+
 // Photos like this one (tags now, maybe colors later: the API decides). No pagination.
 export const getSimilar = (id: string, limit = 12) =>
   get<{ items: Photo[] }>(`/photos/${encodeURIComponent(id)}/similar?limit=${limit}`)
