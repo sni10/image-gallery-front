@@ -29,7 +29,7 @@ const { busy, fields, error, submit } = useSubmit(async () => {
       <h1 id="complaint-title" class="card-title mb-0 text-2xl">{{ $t('complaint.title') }}</h1>
 
       <div v-if="sent" class="alert alert-success" role="status">
-        {{ $t('complaint.sent', { email }) }}
+        {{ $t('complaint.sent') }}
       </div>
 
       <form v-else class="flex flex-col gap-2" @submit.prevent="submit">

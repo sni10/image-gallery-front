@@ -112,7 +112,7 @@
     "photoUrl": "Link to the image (optional)",
     "message": "What is wrong",
     "send": "Send",
-    "sent": "Complaint sent. We will reply to {email}."
+    "sent": "Complaint sent. We will reply by email."
   },
   "cookies": {
     "title": "Cookies",
