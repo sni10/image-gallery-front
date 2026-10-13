@@ -187,8 +187,17 @@ export const getPhoto = (id: string) => get<PhotoDetail>(`/photos/${encodeURICom
 // new / popular (most favorited) ignore the seed.
 export const FEED_SORTS = ['random', 'new', 'popular'] as const
 export type FeedSort = (typeof FEED_SORTS)[number]
-export const getFeed = (sort: FeedSort, seed: string, page = 1, limit = 20) =>
-  get<Page<Photo>>(`/photos?sort=${sort}&seed=${seed}&page=${page}&limit=${limit}`)
+// filter: tag = exact tag (case and a leading # ignored), q = search in tags/description/titles (2-100 chars)
+export const getFeed = (
+  sort: FeedSort,
+  seed: string,
+  page = 1,
+  limit = 20,
+  filter: { tag?: string; q?: string } = {},
+) =>
+  get<Page<Photo>>(
+    `/photos?${new URLSearchParams({ sort, seed, page: String(page), limit: String(limit), ...filter })}`,
+  )
 
 // Photos like this one (tags now, maybe colors later: the API decides). No pagination.
 export const getSimilar = (id: string, limit = 12) =>

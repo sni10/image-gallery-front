@@ -49,6 +49,13 @@ export function createRouter() {
         component: () => import('@/views/PhotoView.vue'),
         props: true,
       },
+      {
+        path: '/tags/:tag',
+        name: 'tag',
+        component: () => import('@/views/FindView.vue'),
+        props: true,
+      },
+      { path: '/search', name: 'search', component: () => import('@/views/FindView.vue') },
       { path: '/terms', name: 'terms', component: () => import('@/views/TermsView.vue') },
       {
         path: '/privacy',

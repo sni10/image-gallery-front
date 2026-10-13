@@ -14,6 +14,14 @@
     "terms": "Terms",
     "privacy": "Privacy"
   },
+  "find": {
+    "title": "Search",
+    "placeholder": "Tag, description, gallery…",
+    "go": "Search",
+    "results": "Search: {q}",
+    "empty": "Nothing found",
+    "tagDescription": "Photos tagged #{tag}"
+  },
   "home": {
     "tagline": "Photos, organized into galleries.",
     "cta": "Browse galleries",

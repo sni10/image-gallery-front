@@ -133,6 +133,22 @@ function setLocale(l: Locale) {
         </li>
       </ul>
       <div class="flex-1" />
+      <RouterLink
+        to="/search"
+        class="btn btn-ghost btn-sm btn-square"
+        :class="{ 'btn-active': $route.path === '/search' }"
+        :title="$t('find.title')"
+        :aria-label="$t('find.title')"
+      >
+        <svg
+          viewBox="0 0 24 24"
+          class="size-5 fill-none stroke-current stroke-2 [stroke-linecap:round]"
+          aria-hidden="true"
+        >
+          <circle cx="11" cy="11" r="7" />
+          <path d="M20 20l-4-4" />
+        </svg>
+      </RouterLink>
       <!-- server and first client render are anonymous; the email appears once /me loads -->
       <RouterLink
         v-if="me"

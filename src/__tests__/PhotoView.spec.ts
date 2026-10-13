@@ -48,7 +48,7 @@ describe('photo page SSR', () => {
     expect(r.html).toContain('href="/photos/p2"')
     expect(r.html).toContain('rel="next"')
     expect(r.html).not.toContain('rel="prev"')
-    expect(r.html).toContain('#cat')
+    expect(r.html).toContain('href="/tags/cat"') // tags lead to their pages
     expect(r.html).toContain('blur-2xl') // server renders as a guest
   })
 

@@ -238,13 +238,20 @@ const crumbs = computed(() => {
       </RouterLink>
     </div>
     <div class="mt-4 flex flex-wrap items-start gap-2">
-      <!-- ponytail: plain badges for now; will link to photos by tag once the API has that list -->
       <ul
         v-if="photo.tags.length"
         class="flex flex-1 flex-wrap gap-2"
         :aria-label="$t('photo.tags')"
       >
-        <li v-for="tag in photo.tags" :key="tag" class="badge badge-outline">#{{ tag }}</li>
+        <li v-for="tag in photo.tags" :key="tag">
+          <RouterLink
+            :to="{ name: 'tag', params: { tag } }"
+            rel="tag"
+            class="badge badge-outline hover:badge-primary"
+          >
+            #{{ tag }}
+          </RouterLink>
+        </li>
       </ul>
       <button
         type="button"
