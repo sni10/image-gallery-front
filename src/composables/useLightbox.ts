@@ -15,6 +15,11 @@ const LINK =
   '<svg class="pswp__icn" viewBox="0 0 24 24" width="24" height="24" style="fill:none;stroke:var(--pswp-icon-color);stroke-width:2;stroke-linecap:round"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/></svg>'
 const BOOKMARK =
   '<svg class="pswp__icn" viewBox="0 0 24 24" width="24" height="24" style="fill:none;stroke:var(--pswp-icon-color);stroke-width:2;stroke-linecap:round;stroke-linejoin:round"><path d="M6 3h12v18l-6-4-6 4zM12 7v6M9 10h6"/></svg>'
+const PLAY =
+  '<svg class="pswp__icn" viewBox="0 0 24 24" width="24" height="24"><path d="M8 5v14l11-7z"/></svg>'
+const PAUSE =
+  '<svg class="pswp__icn" viewBox="0 0 24 24" width="24" height="24"><path d="M7 5h4v14H7zM13 5h4v14h-4z"/></svg>'
+const SPEEDS = [3, 5, 10] // slideshow: seconds per photo, the speed button cycles them
 const lockedSlide = (thumb: string | null, login: string, text: string) =>
   `<div style="position:relative;height:100%;overflow:hidden">${thumb ? `<img src="${encodeURI(thumb)}" alt="" style="width:100%;height:100%;object-fit:contain;filter:blur(32px);transform:scale(1.1)">` : ''}<a href="${login}" style="position:absolute;inset:0;display:grid;place-items:center;color:#fff;font:600 1.25rem sans-serif;text-shadow:0 1px 3px #000">🔒 ${text}</a></div>`
 const pending = (text: string) =>
@@ -154,6 +159,79 @@ export function useLightbox(
         onClick: (_, __, p) => {
           const ph = photos.value[p.currIndex]
           if (ph) pick(ph.id)
+        },
+      })
+    })
+    // title and full size under the photo
+    pswp.on('uiRegister', () => {
+      pswp!.ui!.registerElement({
+        name: 'caption',
+        order: 9,
+        isButton: false,
+        appendTo: 'root',
+        onInit: (el, p) => {
+          el.style.cssText =
+            'position:absolute;inset:auto 0 0;padding:2rem 1rem .75rem;text-align:center;color:#fff;font-size:.875rem;pointer-events:none;background:linear-gradient(transparent,rgba(0,0,0,.6))'
+          const sync = () => {
+            const ph = photos.value[p.currIndex]
+            el.textContent = ph
+              ? [ph.title, `${ph.width} × ${ph.height}`].filter(Boolean).join(' · ')
+              : ''
+          }
+          p.on('change', sync)
+          sync()
+        },
+      })
+    })
+    // slideshow: play/pause + speed. Next photo `delay` after each change (a manual swipe restarts the wait);
+    // stops at the last photo
+    let playing = false
+    let speed = 1 // index in SPEEDS
+    let timer: ReturnType<typeof setTimeout> | undefined
+    let syncPlay = () => {}
+    const schedule = () => {
+      clearTimeout(timer)
+      if (!playing) return
+      timer = setTimeout(() => {
+        if (pswp!.currIndex < pswp!.getNumItems() - 1) pswp!.next()
+        else setPlaying(false)
+      }, SPEEDS[speed]! * 1000)
+    }
+    const setPlaying = (on: boolean) => {
+      playing = on
+      syncPlay()
+      schedule()
+    }
+    pswp.on('change', schedule)
+    pswp.on('destroy', () => clearTimeout(timer))
+    const speedHtml = () =>
+      `<span style="display:grid;place-items:center;height:100%;color:#fff;font:600 13px sans-serif">${t('lightbox.seconds', { n: SPEEDS[speed] })}</span>`
+    pswp.on('uiRegister', () => {
+      pswp!.ui!.registerElement({
+        name: 'play',
+        order: 7,
+        isButton: true,
+        html: PLAY,
+        onInit: (el) => {
+          syncPlay = () => {
+            el.innerHTML = playing ? PAUSE : PLAY
+            el.title = t(playing ? 'lightbox.pause' : 'lightbox.play')
+            el.setAttribute('aria-pressed', String(playing))
+          }
+          syncPlay()
+        },
+        onClick: () => setPlaying(!playing),
+      })
+      pswp!.ui!.registerElement({
+        name: 'speed',
+        order: 7,
+        isButton: true,
+        title: t('lightbox.speed'),
+        html: speedHtml(),
+        onClick: (_, el) => {
+          speed = (speed + 1) % SPEEDS.length
+          el.innerHTML = speedHtml()
+          schedule()
         },
       })
     })

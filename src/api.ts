@@ -9,6 +9,7 @@ export interface Photo {
   height: number
   isFavorite: boolean // always false for anonymous requests
   locked?: boolean // guest without access: url is null, sign-in opens it
+  gallery?: { id: string; title: string } // where it lives; optional: older API lacks it (SPEC-photo-gallery.md)
 }
 
 // The API decides (locked, url: null). `legacy` = the old front-only guest rule for an API without `locked`.
@@ -170,10 +171,15 @@ const post = <T>(path: string, body: unknown) => request<T>('POST', path, body)
 export const getCategories = () => get<Category[]>('/categories')
 
 // unknown category slug = empty list (not 404): check existence via getCategories()
-export const getGalleries = (page = 1, limit = 20, category?: string) =>
+// q = gallery title contains (case-insensitive), over the whole catalog (SPEC-gallery-search.md)
+export const getGalleries = (page = 1, limit = 20, category?: string, q?: string) =>
   get<Page<Gallery>>(
-    `/galleries?page=${page}&limit=${limit}` +
-      (category ? `&category=${encodeURIComponent(category)}` : ''),
+    `/galleries?${new URLSearchParams({
+      page: String(page),
+      limit: String(limit),
+      ...(category ? { category } : {}),
+      ...(q ? { q } : {}),
+    })}`,
   )
 
 export const getGallery = (id: string) => get<Gallery>(`/galleries/${encodeURIComponent(id)}`)
@@ -243,6 +249,13 @@ export const sendComplaint = (email: string, photoUrl: string, message: string) 
 
 export const resendConfirmation = (email: string) =>
   post<void>('/auth/resend-confirmation', { email })
+
+// Forgot password (SPEC-password-reset.md in the backend repo): always 204, says nothing about who exists
+export const requestPasswordReset = (email: string) => post<void>('/auth/password-reset', { email })
+
+// link from the email; 400 {token} = bad/expired link, {password} = weak. Logs in, other devices logged out
+export const resetPassword = (token: string, password: string) =>
+  post<Tokens>('/auth/password-reset/confirm', { token, password }).then(startSession)
 
 export const confirmEmail = (token: string) =>
   post<Tokens>('/auth/confirm-email', { token }).then(startSession)

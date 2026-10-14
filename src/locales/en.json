@@ -24,7 +24,7 @@
     "related": "Related tags"
   },
   "home": {
-    "tagline": "Photos, organized into galleries.",
+    "tagline": "Scroll, enjoy, save.",
     "cta": "Browse galleries",
     "photoAlt": "Photo {n}",
     "empty": "No photos yet",
@@ -38,12 +38,14 @@
       "new": "New",
       "popular": "Popular"
     },
-    "sortLabel": "Sort photos"
+    "sortLabel": "Sort photos",
+    "shuffle": "Shuffle"
   },
   "catalog": {
     "title": "Galleries",
     "empty": "No galleries yet",
     "photos": "{n} photo | {n} photos",
+    "search": "Gallery title",
     "description": "All photo galleries: covers, photo counts and full-screen viewing.",
     "categoryDescription": "Galleries in \"{title}\": {n} gallery | Galleries in \"{title}\": {n} galleries"
   },
@@ -60,7 +62,11 @@
     "prev": "Previous",
     "next": "Next",
     "loadError": "Could not load the photo",
-    "page": "Photo page"
+    "page": "Photo page",
+    "play": "Slideshow",
+    "pause": "Pause",
+    "speed": "Slideshow speed",
+    "seconds": "{n}s"
   },
   "common": {
     "loading": "Loading…",
@@ -93,6 +99,14 @@
     "privacyNote": "How we handle your data: {privacy}",
     "privacyLink": "Privacy Policy"
   },
+  "reset": {
+    "title": "Reset password",
+    "forgot": "Forgot your password?",
+    "hint": "We'll send a link to set a new password.",
+    "send": "Send link",
+    "sent": "If there is an account for {email}, the email with a link is on its way.",
+    "again": "Get a new link"
+  },
   "confirm": {
     "title": "Email confirmation",
     "invalid": "The link is invalid or expired",
@@ -120,7 +134,8 @@
     "empty": "No favorites yet",
     "photoAlt": "Favorites — photo {n}",
     "add": "Add to favorites",
-    "remove": "Remove from favorites"
+    "remove": "Remove from favorites",
+    "failed": "Couldn't save to favorites"
   },
   "collections": {
     "title": "Collections",
@@ -136,6 +151,7 @@
     "deleteConfirm": "Delete for good?"
   },
   "photo": {
+    "toGallery": "Open the gallery \"{gallery}\"",
     "delete": "Delete photo",
     "deleteConfirm": "Delete this photo for good?",
     "description": "Photo \"{title}\" from the gallery \"{gallery}\"",

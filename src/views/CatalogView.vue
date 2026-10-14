@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { computed, onServerPrefetch, useSSRContext } from 'vue'
+import { computed, onServerPrefetch, ref, useSSRContext } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useRoute, useRouter } from 'vue-router'
 import { getGalleries, type Gallery } from '@/api'
 import { useCategories } from '@/composables/useCategories'
 import { useInfiniteList } from '@/composables/useInfiniteList'
@@ -11,6 +12,8 @@ import BreadCrumbs from '@/components/BreadCrumbs.vue'
 // /galleries = all galleries; /categories/:slug = galleries of one category
 const props = defineProps<{ slug?: string }>()
 const { t } = useI18n()
+const route = useRoute()
+const router = useRouter()
 const ssr = import.meta.env.SSR ? useSSRContext<{ status?: number }>() : undefined
 
 const { categories, ready } = useCategories()
@@ -36,15 +39,21 @@ usePageMeta(() => ({
         category.value.galleriesCount,
       )
     : t('catalog.description'),
+  noindex: !!route.query.q, // search results: endless URL variants, not pages to index
 }))
 const crumbs = computed(() => [
   { title: t('nav.galleries'), to: '/galleries' },
   { title: title.value },
 ])
 
+// ?q= searches titles over the whole catalog (the API does it, not the loaded pages). New q = new URL = remount
+const q = typeof route.query.q === 'string' ? route.query.q.trim() : ''
+const query = ref(q)
+const search = () => router.push({ query: query.value.trim() ? { q: query.value.trim() } : {} })
+
 const { items, loading, error, canRetry, empty, loadMore } = useInfiniteList(
-  `catalog:${props.slug ?? ''}`,
-  (page) => getGalleries(page, 20, props.slug),
+  `catalog:${props.slug ?? ''}:${q}`,
+  (page) => getGalleries(page, 20, props.slug, q),
 )
 const ratio = (g: Gallery) => (g.cover ? g.cover.height / g.cover.width : 2 / 3)
 import ListStatus from '@/components/ListStatus.vue'
@@ -55,7 +64,20 @@ import ListStatus from '@/components/ListStatus.vue'
 
   <!-- schema.org microdata: crawlers read galleries/images straight from the markup -->
   <section aria-labelledby="catalog-title" itemscope itemtype="https://schema.org/CollectionPage">
-    <h1 id="catalog-title" itemprop="name">{{ title }}</h1>
+    <div class="mb-4 flex flex-wrap items-center justify-between gap-2">
+      <h1 id="catalog-title" class="m-0" itemprop="name">{{ title }}</h1>
+      <form v-if="!unknown" role="search" class="join" @submit.prevent="search">
+        <input
+          v-model="query"
+          type="search"
+          maxlength="100"
+          class="input join-item input-sm w-56"
+          :placeholder="$t('catalog.search')"
+          :aria-label="$t('catalog.search')"
+        />
+        <button class="btn join-item btn-sm">{{ $t('find.go') }}</button>
+      </form>
+    </div>
 
     <MasonryGrid v-if="!unknown" :items="items" :ratio="ratio" :min-width="280">
       <template #default="{ item: g }">
@@ -105,7 +127,7 @@ import ListStatus from '@/components/ListStatus.vue'
     <ListStatus
       :loading="loading"
       :empty="empty"
-      :empty-text="$t('catalog.empty')"
+      :empty-text="$t(q ? 'find.empty' : 'catalog.empty')"
       :error="error"
       :can-retry="canRetry"
       @retry="loadMore"

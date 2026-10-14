@@ -17,6 +17,7 @@ const props = defineProps<{
   loadMore: () => Promise<void>
   alt: (p: Photo, i: number) => string
   guestFree?: number // guests see this many first photos; the rest are blurred until sign-in. Default: all
+  hideGallery?: boolean // inside a gallery its own name on every photo is noise
 }>()
 const emit = defineEmits<{ delete: [id: string] }>() // parent drops it from the list
 
@@ -107,6 +108,15 @@ function open(e: MouseEvent, i: number) {
           </span>
         </a>
         <meta v-if="p.url" itemprop="contentUrl" :content="p.url" />
+        <!-- the photo's gallery: keep browsing the theme. Same reveal rules as the buttons -->
+        <RouterLink
+          v-if="p.gallery && !hideGallery"
+          :to="`/galleries/${p.gallery.id}`"
+          class="badge absolute bottom-2 left-2 max-w-[calc(100%-3.5rem)] border-0 bg-black/45 text-white opacity-0 transition-opacity group-hover:opacity-100 hover:bg-black/70 focus-visible:opacity-100 [@media(hover:none)]:opacity-100"
+          :title="$t('photo.toGallery', { gallery: p.gallery.title })"
+        >
+          <span class="truncate">{{ p.gallery.title }}</span>
+        </RouterLink>
         <!-- me is null on the server and first client render: no hydration mismatch -->
         <button
           v-if="me?.isAdmin"

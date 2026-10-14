@@ -67,6 +67,7 @@ import ListStatus from '@/components/ListStatus.vue'
       :total="total"
       :load-more="loadMore"
       :guest-free="10"
+      hide-gallery
       @delete="remove"
       :alt="(_, i) => $t('gallery.photoAlt', { gallery: gallery?.title ?? '', n: i + 1 })"
     />
