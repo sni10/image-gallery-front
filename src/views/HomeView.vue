@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { FEED_SORTS, getFeed, type FeedSort } from '@/api'
 import { useInfiniteList } from '@/composables/useInfiniteList'
 import { usePageMeta } from '@/composables/usePageMeta'
@@ -14,12 +14,18 @@ const q = route.query.sort
 const sort: FeedSort = FEED_SORTS.includes(q as FeedSort) ? (q as FeedSort) : 'random'
 const sortLink = (s: FeedSort) => ({ query: s === 'random' ? {} : { sort: s } })
 
-// one seed per visit (made on the server, reused by the client) = stable random order while scrolling
-const seed = useSsrState('home:seed', () => Math.random().toString(36).slice(2, 12) || 'seed')
+// one seed per visit (made on the server, reused by the client) = stable random order while scrolling.
+// "Shuffle" puts a new one in ?seed: new URL = remount with a fresh set, back = the previous set
+const newSeed = () => Math.random().toString(36).slice(2, 12) || 'seed'
+const s = route.query.seed
+const seed = typeof s === 'string' && s ? s : useSsrState('home:seed', newSeed).value
+// ponytail: every shuffled set stays in the SSR state (back works); fine until someone shuffles hundreds of times
 const { items, total, loading, error, canRetry, empty, loadMore, remove } = useInfiniteList(
-  `home:photos:${sort}`,
-  (page) => getFeed(sort, seed.value, page),
+  `home:photos:${sort}:${seed}`,
+  (page) => getFeed(sort, seed, page),
 )
+const router = useRouter()
+const shuffle = () => router.push({ query: { seed: newSeed() } })
 import ListStatus from '@/components/ListStatus.vue'
 </script>
 
@@ -36,7 +42,26 @@ import ListStatus from '@/components/ListStatus.vue'
 
   <section aria-labelledby="home-photos" itemscope itemtype="https://schema.org/CollectionPage">
     <div class="mb-4 flex flex-wrap items-center justify-between gap-2">
-      <h2 id="home-photos" class="m-0" itemprop="name">{{ $t(`home.sort.${sort}`) }}</h2>
+      <div class="flex items-center gap-2">
+        <h2 id="home-photos" class="m-0" itemprop="name">{{ $t(`home.sort.${sort}`) }}</h2>
+        <!-- a button, not a link: crawlers shouldn't walk endless ?seed= URLs -->
+        <button
+          v-if="sort === 'random'"
+          type="button"
+          class="btn btn-ghost btn-sm"
+          :title="$t('home.shuffle')"
+          @click="shuffle"
+        >
+          <svg
+            viewBox="0 0 24 24"
+            class="size-5 fill-none stroke-current stroke-2 [stroke-linecap:round] [stroke-linejoin:round]"
+            aria-hidden="true"
+          >
+            <path d="M16 3h5v5M4 20 21 3M21 16v5h-5M15 15l6 6M4 4l5 5" />
+          </svg>
+          <span class="max-sm:sr-only">{{ $t('home.shuffle') }}</span>
+        </button>
+      </div>
       <!-- links, not buttons: each order has its own URL (shareable, crawlable) -->
       <nav class="join" :aria-label="$t('home.sortLabel')">
         <RouterLink

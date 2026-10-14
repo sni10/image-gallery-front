@@ -9,6 +9,7 @@ import AgeGate from '@/components/AgeGate.vue'
 import ScrollTop from '@/components/ScrollTop.vue'
 import CookieBanner from '@/components/CookieBanner.vue'
 import CollectionPicker from '@/components/CollectionPicker.vue'
+import { favoriteFailed, useFavorite } from '@/composables/useFavorite'
 
 const { categories } = useCategories()
 // native <details> dropdowns (categories on desktop, the whole menu on phones): close after navigating
@@ -19,6 +20,8 @@ watch(
   () => route.fullPath,
   () => [menu.value, mobileMenu.value].forEach((d) => d?.removeAttribute('open')),
 )
+
+const retryFavorite = useFavorite() // toast below: the failed heart click, once more
 
 const { locale } = useI18n()
 function setLocale(l: Locale) {
@@ -149,6 +152,33 @@ function setLocale(l: Locale) {
           <path d="M20 20l-4-4" />
         </svg>
       </RouterLink>
+      <!-- favorites and collections one click away; signed-in only, like the email below -->
+      <template v-if="me">
+        <RouterLink
+          to="/account/favorites"
+          class="btn btn-ghost btn-sm btn-square text-lg"
+          :class="{ 'btn-active': $route.path === '/account/favorites' }"
+          :title="$t('favorites.title')"
+          :aria-label="$t('favorites.title')"
+        >
+          ♥
+        </RouterLink>
+        <RouterLink
+          to="/account/collections"
+          class="btn btn-ghost btn-sm btn-square"
+          :class="{ 'btn-active': $route.path.startsWith('/account/collections') }"
+          :title="$t('collections.title')"
+          :aria-label="$t('collections.title')"
+        >
+          <svg
+            viewBox="0 0 24 24"
+            class="size-5 fill-none stroke-current stroke-2 [stroke-linecap:round] [stroke-linejoin:round]"
+            aria-hidden="true"
+          >
+            <path d="M6 3h12v18l-6-4-6 4z" />
+          </svg>
+        </RouterLink>
+      </template>
       <!-- server and first client render are anonymous; the email appears once /me loads -->
       <RouterLink
         v-if="me"
@@ -183,5 +213,21 @@ function setLocale(l: Locale) {
   <ScrollTop />
   <CookieBanner />
   <CollectionPicker />
+  <div v-if="favoriteFailed" class="toast toast-center z-30">
+    <div class="alert alert-error" role="alert">
+      <span>{{ $t('favorites.failed') }}</span>
+      <button type="button" class="btn btn-sm" @click="retryFavorite(favoriteFailed)">
+        {{ $t('common.retry') }}
+      </button>
+      <button
+        type="button"
+        class="btn btn-ghost btn-sm btn-square"
+        :aria-label="$t('lightbox.close')"
+        @click="favoriteFailed = null"
+      >
+        ✕
+      </button>
+    </div>
+  </div>
   <AgeGate />
 </template>

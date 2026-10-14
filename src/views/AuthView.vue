@@ -88,6 +88,9 @@ async function resend() {
             :class="{ 'input-error': fields.password }"
           />
           <p v-if="fields.password" class="label text-error">{{ fields.password }}</p>
+          <RouterLink v-if="mode === 'login'" to="/forgot-password" class="label link w-fit">
+            {{ $t('reset.forgot') }}
+          </RouterLink>
         </fieldset>
         <!-- required: the browser won't submit without it; the backend checks termsAccepted as well -->
         <fieldset v-if="mode === 'register'" class="fieldset">

@@ -84,6 +84,14 @@ export function createRouter() {
         props: { mode: 'register' },
         meta: { guestOnly: true },
       },
+      {
+        path: '/forgot-password',
+        name: 'forgot-password',
+        component: () => import('@/views/ResetView.vue'),
+        meta: { guestOnly: true },
+      },
+      // not guestOnly: the email link must work in a browser that is still signed in
+      { path: '/reset-password', component: () => import('@/views/ResetView.vue') },
       { path: '/confirm-email', component: ConfirmView },
       { path: '/confirm-email-change', component: ConfirmView, props: { change: true } },
       { path: '/account', name: 'account', component: () => import('@/views/AccountView.vue') },
