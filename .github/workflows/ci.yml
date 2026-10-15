@@ -107,7 +107,9 @@ jobs:
       - uses: docker/build-push-action@v7
         with:
           push: true
-          build-args: VITE_API_URL=${{ env.VITE_API_URL }}
+          build-args: |
+            VITE_API_URL=${{ env.VITE_API_URL }}
+            VITE_TURNSTILE_SITEKEY=${{ vars.TURNSTILE_SITEKEY }}
           tags: |
             ghcr.io/${{ github.repository }}:${{ github.sha }}
             ${{ needs.release.outputs.released == 'true' && format('ghcr.io/{0}:v{1}', github.repository, needs.release.outputs.version) || '' }}

@@ -8,6 +8,9 @@ COPY . .
 # (https://api.artai.win). .env is not copied into the image (.dockerignore).
 ARG VITE_API_URL
 ENV VITE_API_URL=${VITE_API_URL}
+# public Turnstile site key for the complaint form; empty -> Cloudflare's test key
+ARG VITE_TURNSTILE_SITEKEY
+ENV VITE_TURNSTILE_SITEKEY=${VITE_TURNSTILE_SITEKEY}
 RUN npm run build-only
 
 FROM node:24-alpine
