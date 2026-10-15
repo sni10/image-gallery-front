@@ -1,6 +1,7 @@
 import { renderToString } from 'vue/server-renderer'
 import { createApp } from './main'
 import { pickLocale } from './i18n'
+import en from './locales/en.json'
 
 const esc = (s: string) =>
   s.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
@@ -21,19 +22,22 @@ export async function render(url: string, cookie?: string, origin = '') {
 
   const m = head.meta?.value
   const status = router.currentRoute.value.name === 'not-found' ? 404 : (ctx.status ?? 200)
+  // path only: query strings (?next=…, ?seed=…) don't make another page
+  const pageUrl = !m?.noindex && status === 200 ? origin + router.currentRoute.value.path : ''
   const tags = m
     ? [
         `<title>${esc(m.title)}</title>`,
         `<meta name="description" content="${esc(m.description)}">`,
         `<meta property="og:type" content="website">`,
+        `<meta property="og:site_name" content="${esc(en.site.name)}">`, // same in every language
         `<meta property="og:title" content="${esc(m.title)}">`,
         `<meta property="og:description" content="${esc(m.description)}">`,
         m.noindex ? `<meta name="robots" content="noindex">` : '',
         m.image ? `<meta property="og:image" content="${esc(m.image)}">` : '',
-        // path only: query strings (?next=…) don't make another page
-        !m.noindex && status === 200
-          ? `<link rel="canonical" href="${esc(origin + router.currentRoute.value.path)}">`
-          : '',
+        // X/Twitter: big picture when the page has one
+        `<meta name="twitter:card" content="${m.image ? 'summary_large_image' : 'summary'}">`,
+        pageUrl ? `<meta property="og:url" content="${esc(pageUrl)}">` : '',
+        pageUrl ? `<link rel="canonical" href="${esc(pageUrl)}">` : '',
       ]
         .filter(Boolean)
         .join('\n    ')
