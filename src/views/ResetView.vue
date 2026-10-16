@@ -3,6 +3,7 @@ import { ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { requestPasswordReset, resetPassword } from '@/api'
+import TurnstileCaptcha from '@/components/TurnstileCaptcha.vue'
 import { usePageMeta } from '@/composables/usePageMeta'
 import { useSubmit } from '@/composables/useSubmit'
 
@@ -15,11 +16,17 @@ const token = typeof route.query.token === 'string' ? route.query.token : ''
 const email = ref('')
 const password = ref('')
 const sent = ref(false)
+const captchaToken = ref('') // only the email step sends mail, so only it has a captcha
+const captcha = ref<InstanceType<typeof TurnstileCaptcha>>()
 
 const { busy, fields, error, submit } = useSubmit(async () => {
   if (!token) {
-    await requestPasswordReset(email.value)
-    sent.value = true
+    try {
+      await requestPasswordReset(email.value, captchaToken.value)
+      sent.value = true
+    } finally {
+      captcha.value?.reset()
+    }
     return
   }
   await resetPassword(token, password.value)
@@ -71,8 +78,14 @@ const { busy, fields, error, submit } = useSubmit(async () => {
           <span>{{ $t('confirm.invalid') }}</span>
           <RouterLink to="/forgot-password" class="btn btn-sm">{{ $t('reset.again') }}</RouterLink>
         </div>
+        <TurnstileCaptcha
+          v-if="!token"
+          ref="captcha"
+          v-model="captchaToken"
+          :error="fields.captcha"
+        />
         <div v-if="error" class="alert alert-error" role="alert">{{ error }}</div>
-        <button class="btn btn-primary mt-2" :disabled="busy">
+        <button class="btn btn-primary mt-2" :disabled="busy || (!token && !captchaToken)">
           <span v-if="busy" class="loading loading-spinner loading-sm" />
           {{ $t(token ? 'account.save' : 'reset.send') }}
         </button>

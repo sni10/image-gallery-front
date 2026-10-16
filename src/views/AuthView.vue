@@ -5,6 +5,7 @@ import { useI18n } from 'vue-i18n'
 import { ApiError, login, register, resendConfirmation } from '@/api'
 import { usePageMeta } from '@/composables/usePageMeta'
 import { useSubmit } from '@/composables/useSubmit'
+import TurnstileCaptcha from '@/components/TurnstileCaptcha.vue'
 
 const props = defineProps<{ mode: 'login' | 'register' }>()
 const { t } = useI18n()
@@ -17,6 +18,9 @@ const password = ref('')
 const accepted = ref(false)
 const sent = ref(false) // confirmation email is on its way
 const unconfirmed = ref(false)
+// captcha only where an email gets sent: sign-up and "resend"; at most one is on screen at a time
+const token = ref('')
+const captcha = ref<InstanceType<typeof TurnstileCaptcha>>()
 // only local paths: ?next=//evil.com must not redirect off-site
 const next = computed(() => {
   const n = route.query.next
@@ -26,8 +30,12 @@ const next = computed(() => {
 const { busy, fields, error, submit } = useSubmit(async () => {
   unconfirmed.value = false
   if (props.mode === 'register') {
-    await register(email.value, password.value)
-    sent.value = true
+    try {
+      await register(email.value, password.value, token.value)
+      sent.value = true
+    } finally {
+      captcha.value?.reset()
+    }
     return
   }
   try {
@@ -44,7 +52,8 @@ const { busy, fields, error, submit } = useSubmit(async () => {
 })
 
 async function resend() {
-  await resendConfirmation(email.value).catch(() => {}) // always 204
+  await resendConfirmation(email.value, token.value).catch(() => {}) // always 204
+  captcha.value?.reset()
   unconfirmed.value = false
   sent.value = true
 }
@@ -57,7 +66,8 @@ async function resend() {
 
       <template v-if="sent">
         <div class="alert alert-success" role="status">{{ $t('auth.sent', { email }) }}</div>
-        <button type="button" class="btn btn-outline" @click="resend">
+        <TurnstileCaptcha ref="captcha" v-model="token" />
+        <button type="button" class="btn btn-outline" :disabled="!token" @click="resend">
           {{ $t('auth.resend') }}
         </button>
       </template>
@@ -121,12 +131,23 @@ async function resend() {
             </template>
           </i18n-t>
         </fieldset>
+        <TurnstileCaptcha
+          v-if="mode === 'register'"
+          ref="captcha"
+          v-model="token"
+          :error="fields.captcha"
+        />
         <div v-if="error" class="alert alert-error" role="alert">{{ error }}</div>
-        <div v-if="unconfirmed" class="alert alert-warning" role="alert">
-          <span>{{ $t('auth.unconfirmed') }}</span>
-          <button type="button" class="btn btn-sm" @click="resend">{{ $t('auth.resend') }}</button>
-        </div>
-        <button class="btn btn-primary mt-2" :disabled="busy">
+        <template v-if="unconfirmed">
+          <div class="alert alert-warning" role="alert">
+            <span>{{ $t('auth.unconfirmed') }}</span>
+            <button type="button" class="btn btn-sm" :disabled="!token" @click="resend">
+              {{ $t('auth.resend') }}
+            </button>
+          </div>
+          <TurnstileCaptcha ref="captcha" v-model="token" />
+        </template>
+        <button class="btn btn-primary mt-2" :disabled="busy || (mode === 'register' && !token)">
           <span v-if="busy" class="loading loading-spinner loading-sm" />
           {{ title }}
         </button>
