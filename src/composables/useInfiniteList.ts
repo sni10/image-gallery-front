@@ -36,13 +36,17 @@ export function useInfiniteList<T extends { id: string }>(
   // An empty page = the end, even if items < total: a removal or an upload during scroll shifts the page
   // offsets, so the loaded count may never reach total. Without this the sentinel loops on empty pages forever.
   const done = ref(false)
+  // bumped by reset(): an answer that was in flight belongs to the old list and is dropped
+  let generation = 0
 
   async function loadMore() {
     if (loading.value || done.value || (page.value > 0 && items.value.length >= total.value)) return
     loading.value = true
     failure.value = null
+    const mine = generation
     try {
       const res = await fetchPage(page.value + 1)
+      if (mine !== generation) return
       // newest-first + page offsets: uploads during scroll shift pages, skip repeats
       const seen = new Set(items.value.map((p) => p.id))
       items.value.push(...res.items.filter((p) => !seen.has(p.id)))
@@ -50,11 +54,12 @@ export function useInfiniteList<T extends { id: string }>(
       page.value++
       done.value = res.items.length === 0
     } catch (e) {
+      if (mine !== generation) return
       failure.value = e
       // 4xx won't fix itself on retry (bad id / params); network errors and 5xx might
       canRetry.value = !(e instanceof ApiError && e.status >= 400 && e.status < 500)
     } finally {
-      loading.value = false
+      if (mine === generation) loading.value = false
     }
     // re-observe: fires again if the sentinel is still on screen (tall viewport)
     if (!failure.value && sentinel.value) {
@@ -96,9 +101,11 @@ export function useInfiniteList<T extends { id: string }>(
     if (items.value.length < before) total.value--
   }
 
-  // The fetcher switched source (favorites <-> wave), call while not loading.
-  // reset: drop what's loaded, start from page 1. resume: keep it and go on, even if the old source ran out.
+  // The fetcher switched source (favorites <-> wave, a new search).
+  // reset: drop what's loaded, start from page 1, any time. resume: keep it and go on (call while not loading).
   function reset() {
+    generation++
+    loading.value = false
     Object.assign(state.value, init())
     done.value = false
     failure.value = null

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onServerPrefetch, ref, useSSRContext } from 'vue'
+import { computed, onServerPrefetch, onUnmounted, ref, useSSRContext, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 import { getGalleries, type Gallery } from '@/api'
@@ -25,6 +25,13 @@ onServerPrefetch(async () => {
   if (unknown.value) ssr!.status = 404
 })
 
+// ?q= searches titles over the whole catalog (the API does it: only the first pages are loaded).
+// Results follow the typing (debounced); the list resets in place instead of navigating, because a new
+// fullPath remounts the page (App.vue) and the input would lose focus on every letter.
+const initial = typeof route.query.q === 'string' ? route.query.q.trim() : ''
+const query = ref(initial)
+const q = ref(initial) // what the list shows
+
 const title = computed(() =>
   props.slug
     ? (category.value?.title ?? (unknown.value ? t('notFound.title') : '…'))
@@ -39,22 +46,34 @@ usePageMeta(() => ({
         category.value.galleriesCount,
       )
     : t('catalog.description'),
-  noindex: !!route.query.q, // search results: endless URL variants, not pages to index
+  noindex: !!q.value, // search results: endless URL variants, not pages to index
 }))
 const crumbs = computed(() => [
   { title: t('nav.galleries'), to: '/galleries' },
   { title: title.value },
 ])
 
-// ?q= searches titles over the whole catalog (the API does it, not the loaded pages). New q = new URL = remount
-const q = typeof route.query.q === 'string' ? route.query.q.trim() : ''
-const query = ref(q)
-const search = () => router.push({ query: query.value.trim() ? { q: query.value.trim() } : {} })
-
-const { items, loading, error, canRetry, empty, loadMore } = useInfiniteList(
-  `catalog:${props.slug ?? ''}:${q}`,
-  (page) => getGalleries(page, 20, props.slug, q),
+const { items, loading, error, canRetry, empty, loadMore, reset } = useInfiniteList(
+  `catalog:${props.slug ?? ''}:${initial}`,
+  (page) => getGalleries(page, 20, props.slug, q.value),
 )
+
+let timer: ReturnType<typeof setTimeout> | undefined
+function search() {
+  clearTimeout(timer)
+  const v = query.value.trim()
+  if (v === q.value) return
+  q.value = v
+  // ponytail: URL without the router, so the router still holds the old query: a nav link to the very same
+  // URL may do nothing. Upgrade: key RouterView by path for this page if that ever bites
+  history.replaceState(history.state, '', router.resolve({ query: v ? { q: v } : {} }).href)
+  reset()
+}
+watch(query, () => {
+  clearTimeout(timer)
+  timer = setTimeout(search, 300)
+})
+onUnmounted(() => clearTimeout(timer))
 const ratio = (g: Gallery) => (g.cover ? g.cover.height / g.cover.width : 2 / 3)
 import ListStatus from '@/components/ListStatus.vue'
 </script>
