@@ -96,5 +96,13 @@ export function useInfiniteList<T extends { id: string }>(
     if (items.value.length < before) total.value--
   }
 
-  return { items, total, loading, error, canRetry, empty, loadMore, remove }
+  // start over from page 1 (the wave's "refresh"); call it while not loading
+  function reset() {
+    Object.assign(state.value, init())
+    done.value = false
+    failure.value = null
+    return loadMore()
+  }
+
+  return { items, total, loading, error, canRetry, empty, loadMore, remove, reset }
 }

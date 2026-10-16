@@ -111,6 +111,11 @@ export function createRouter() {
         name: 'favorites',
         component: () => import('@/views/FavoritesView.vue'),
       },
+      {
+        path: '/account/wave',
+        name: 'wave',
+        component: () => import('@/views/WaveView.vue'),
+      },
       // server answers 404 for this route (entry-server.ts)
       {
         path: '/:pathMatch(.*)*',

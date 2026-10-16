@@ -298,6 +298,17 @@ export const deletePhoto = (id: string) =>
 export const getFavorites = (page = 1, limit = 20) =>
   get<Page<Photo>>(`/me/favorites?page=${page}&limit=${limit}`)
 
+// "My wave" (SPEC-similar-wave.md in the backend repo): the server keeps no state, so the page sends the ids
+// it has shown (the last 2 000, the API's cap). The answer has no total: here it is one more than loaded
+// while photos keep coming, so the list and the lightbox ask again, and exact once a batch comes back empty.
+export const getWave = async (shown: string[], limit = 24): Promise<Page<Photo>> => {
+  const { items } = await post<{ items: Photo[] }>('/me/wave', {
+    exclude: shown.slice(-2000),
+    limit,
+  })
+  return { items, total: shown.length + items.length + (items.length ? 1 : 0) }
+}
+
 // --- collections (all need a session; someone else's collection = 404) ---
 
 // recently changed first. 400 {code: 'limit'}: 100 collections / 1000 photos per collection

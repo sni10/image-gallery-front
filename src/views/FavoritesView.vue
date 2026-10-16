@@ -27,7 +27,13 @@ import ListStatus from '@/components/ListStatus.vue'
 
 <template>
   <section aria-labelledby="fav-title">
-    <h1 id="fav-title">{{ $t('favorites.title') }}</h1>
+    <!-- the wave gets its own page: below this endless list nobody would ever reach it -->
+    <div class="flex flex-wrap items-center justify-between gap-2">
+      <h1 id="fav-title">{{ $t('favorites.title') }}</h1>
+      <RouterLink :to="{ name: 'wave' }" class="btn btn-sm btn-primary">
+        {{ $t('wave.title') }}
+      </RouterLink>
+    </div>
     <PhotoGrid
       :items="items"
       :total="total"
