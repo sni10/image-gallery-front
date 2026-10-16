@@ -302,6 +302,7 @@ const crumbs = computed(() => {
       :total="similar.length"
       :load-more="async () => {}"
       :alt="(p) => p.title"
+      @delete="(id) => (similar = similar.filter((p) => p.id !== id))"
     />
   </section>
 </template>
