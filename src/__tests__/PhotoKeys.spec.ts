@@ -21,6 +21,14 @@ afterEach(() => vi.unstubAllGlobals())
 
 it('arrow keys go to the gallery neighbours, not while typing', async () => {
   vi.stubGlobal(
+    'IntersectionObserver', // similar photos are an endless list
+    class {
+      observe() {}
+      unobserve() {}
+      disconnect() {}
+    },
+  )
+  vi.stubGlobal(
     'fetch',
     vi.fn(async (url: string) => {
       if (url.includes('/similar')) return new Response(JSON.stringify({ items: [] }))

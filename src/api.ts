@@ -216,9 +216,10 @@ export const getTags = (related?: string, limit = 20) =>
     `/tags?${new URLSearchParams({ limit: String(limit), ...(related ? { related } : {}) })}`,
   )
 
-// Photos like this one (tags now, maybe colors later: the API decides). No pagination.
-export const getSimilar = (id: string, limit = 12) =>
-  get<{ items: Photo[] }>(`/photos/${encodeURIComponent(id)}/similar?limit=${limit}`)
+// Photos like this one (by picture and tags: the API decides). Pages by offset (SPEC-similar-pages.md in the
+// backend repo), no total: an empty page = the end. An older API ignores page and repeats page 1
+export const getSimilar = (id: string, page = 1, limit = 24) =>
+  get<{ items: Photo[] }>(`/photos/${encodeURIComponent(id)}/similar?page=${page}&limit=${limit}`)
 
 // --- account ---
 

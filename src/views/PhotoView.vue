@@ -17,6 +17,7 @@ import {
   hasSession,
   isLocked,
   me,
+  type Page,
   type Photo,
   type PhotoDetail,
 } from '@/api'
@@ -28,6 +29,8 @@ import PhotoGrid from '@/components/PhotoGrid.vue'
 import { useCollectionPicker } from '@/composables/useCollectionPicker'
 import { useFavorite } from '@/composables/useFavorite'
 import { useLightbox } from '@/composables/useLightbox'
+import { useInfiniteList } from '@/composables/useInfiniteList'
+import ListStatus from '@/components/ListStatus.vue'
 
 // Own address of a photo (SEO, sharing). Description and tags go into <head> / microdata only.
 const props = defineProps<{ id: string }>()
@@ -56,23 +59,26 @@ function refresh() {
   )
 }
 // Similar photos under the main one: rendered on the server (internal links for crawlers).
-// An error just hides the block. Signed in: fetched again with the token, like the photo itself
-const similar = useSsrState<Photo[]>(`similar:${props.id}`, () => [])
-// admin trash: drop it at once, then ask again so the next similar one takes its place.
-// `deleted` guards against an earlier answer that lands after a later delete
-const deleted = new Set<string>()
-const loadSimilar = () =>
-  getSimilar(props.id).then(
-    (r) => (similar.value = r.items.filter((p) => !deleted.has(p.id))),
-    () => {},
-  )
-function removeSimilar(id: string) {
-  deleted.add(id)
-  similar.value = similar.value.filter((p) => p.id !== id)
-  loadSimilar()
+// An error on page 1 just hides the block. Signed in: page 1 again with the token (useInfiniteList).
+// Endless (SPEC-similar-pages.md in the backend repo): page 1 on the server, the rest on scroll.
+// The answer has no total: one more than loaded while photos keep coming, exact once a page adds nothing.
+// Only new ids count: an API without pages repeats page 1, and that must end the list, not loop on it.
+async function similarPage(page: number): Promise<Page<Photo>> {
+  const { items: batch } = await getSimilar(props.id, page)
+  const seen = new Set(page === 1 ? [] : similar.value.map((p: Photo) => p.id))
+  const fresh = batch.filter((p) => !seen.has(p.id))
+  const loaded = page === 1 ? 0 : similar.value.length
+  return { items: fresh, total: loaded + fresh.length + (fresh.length ? 1 : 0) }
 }
-onServerPrefetch(loadSimilar)
-onMounted(() => (!similar.value.length || hasSession()) && loadSimilar())
+const {
+  items: similar,
+  total: similarTotal,
+  loading: similarLoading,
+  error: similarError,
+  canRetry: similarCanRetry,
+  loadMore: moreSimilar,
+  remove: removeSimilar, // admin trash; the gap fills from the next pages
+} = useInfiniteList(`similar:${props.id}`, similarPage)
 
 // the signed url expired while the page stayed open: one fresh fetch
 let refreshed = false
@@ -307,10 +313,20 @@ const crumbs = computed(() => {
     <h2 id="similar-title" class="mb-4">{{ $t('photo.similar') }}</h2>
     <PhotoGrid
       :items="similar"
-      :total="similar.length"
-      :load-more="async () => {}"
+      :total="similarTotal"
+      :load-more="moreSimilar"
       :alt="(p) => p.title"
       @delete="removeSimilar"
     />
+    <ListStatus
+      :loading="similarLoading"
+      :empty="false"
+      empty-text=""
+      :error="similarError"
+      :can-retry="similarCanRetry"
+      @retry="moreSimilar"
+    />
   </section>
+  <!-- outside the v-if: the list observes it from mount, even before page 1 is there -->
+  <div ref="sentinel" />
 </template>
