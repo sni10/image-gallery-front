@@ -234,10 +234,11 @@ export const TERMS_VERSION = '2026-10-12'
 // Date of the current Privacy Policy (/privacy); front only, nobody accepts it
 export const PRIVACY_VERSION = '2026-10-13'
 
-export const register = (email: string, password: string) =>
+export const register = (email: string, password: string, captcha: string) =>
   post<{ email: string }>('/auth/register', {
     email,
     password,
+    captcha,
     termsAccepted: true, // the form can't be sent without the checkbox
     termsVersion: TERMS_VERSION,
   })
@@ -247,11 +248,13 @@ export const register = (email: string, password: string) =>
 export const sendComplaint = (email: string, photoUrl: string, message: string, captcha: string) =>
   post<void>('/complaints', { email, photoUrl, message, captcha })
 
-export const resendConfirmation = (email: string) =>
-  post<void>('/auth/resend-confirmation', { email })
+// captcha = Turnstile token on every endpoint that sends an email (SPEC-complaint-captcha.md)
+export const resendConfirmation = (email: string, captcha: string) =>
+  post<void>('/auth/resend-confirmation', { email, captcha })
 
 // Forgot password (SPEC-password-reset.md in the backend repo): always 204, says nothing about who exists
-export const requestPasswordReset = (email: string) => post<void>('/auth/password-reset', { email })
+export const requestPasswordReset = (email: string, captcha: string) =>
+  post<void>('/auth/password-reset', { email, captcha })
 
 // link from the email; 400 {token} = bad/expired link, {password} = weak. Logs in, other devices logged out
 export const resetPassword = (token: string, password: string) =>

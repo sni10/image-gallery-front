@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { onBeforeUnmount, onMounted, ref } from 'vue'
+import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { sendComplaint } from '@/api'
+import TurnstileCaptcha from '@/components/TurnstileCaptcha.vue'
 import { usePageMeta } from '@/composables/usePageMeta'
 import { useSubmit } from '@/composables/useSubmit'
 
@@ -13,44 +14,15 @@ const email = ref('')
 const photoUrl = ref('')
 const message = ref('')
 const sent = ref(false)
-
-// Cloudflare Turnstile against spam bots; the backend checks the token (SPEC-complaint-captcha.md in the
-// backend repo). No key in the build -> Cloudflare's always-pass test key (local dev).
-const SITEKEY = import.meta.env.VITE_TURNSTILE_SITEKEY || '1x00000000000000000000AA'
-const captchaEl = ref<HTMLElement>()
 const token = ref('')
-let widget: string | undefined
-
-function renderCaptcha() {
-  if (!captchaEl.value || !window.turnstile) return
-  widget = window.turnstile.render(captchaEl.value, {
-    sitekey: SITEKEY,
-    callback: (t) => (token.value = t),
-    'expired-callback': () => (token.value = ''),
-  })
-}
-
-onMounted(() => {
-  if (window.turnstile) return renderCaptcha()
-  const s = document.createElement('script')
-  s.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit'
-  s.onload = renderCaptcha
-  document.head.append(s)
-})
-onBeforeUnmount(() => {
-  if (widget) window.turnstile?.remove(widget)
-})
+const captcha = ref<InstanceType<typeof TurnstileCaptcha>>()
 
 const { busy, fields, error, submit } = useSubmit(async () => {
   try {
     await sendComplaint(email.value, photoUrl.value, message.value, token.value)
     sent.value = true
   } finally {
-    // a token works once: after an error the user needs a new one
-    if (!sent.value && widget) {
-      token.value = ''
-      window.turnstile?.reset(widget)
-    }
+    captcha.value?.reset()
   }
 })
 </script>
@@ -113,8 +85,7 @@ const { busy, fields, error, submit } = useSubmit(async () => {
           />
           <p v-if="fields.message" class="label text-error">{{ fields.message }}</p>
         </fieldset>
-        <div ref="captchaEl" class="min-h-16" />
-        <p v-if="fields.captcha" class="label text-error">{{ fields.captcha }}</p>
+        <TurnstileCaptcha ref="captcha" v-model="token" :error="fields.captcha" />
         <div v-if="error" class="alert alert-error" role="alert">{{ error }}</div>
         <button class="btn btn-primary mt-2" :disabled="busy || !token">
           <span v-if="busy" class="loading loading-spinner loading-sm" />

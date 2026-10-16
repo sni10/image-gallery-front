@@ -37,11 +37,11 @@ describe('api errors', () => {
 })
 
 describe('register', () => {
-  it('sends the accepted terms version', async () => {
+  it('sends the accepted terms version and the captcha token', async () => {
     respond(201, { email: 'a@b.c' })
-    await register('a@b.c', 'secret-pass')
+    await register('a@b.c', 'secret-pass', 'tok')
     const body = JSON.parse((vi.mocked(fetch).mock.calls[0]![1] as RequestInit).body as string)
-    expect(body).toMatchObject({ termsAccepted: true, termsVersion: TERMS_VERSION })
+    expect(body).toMatchObject({ termsAccepted: true, termsVersion: TERMS_VERSION, captcha: 'tok' })
   })
 })
 
