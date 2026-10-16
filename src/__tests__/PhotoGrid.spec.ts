@@ -124,3 +124,34 @@ describe('API lock (Photo.locked, url: null)', () => {
     expect(w.text()).toContain('Sign in to see this photo')
   })
 })
+
+describe('gallery cover star', () => {
+  const grid3 = (coverId?: string | null) =>
+    mount(PhotoGrid, {
+      props: { items: [photo], total: 1, loadMore: async () => {}, alt: () => '', coverId },
+      global: { plugins: [createI18nFor('en'), createRouter()] },
+    })
+  const star = (w: ReturnType<typeof grid3>) => w.find('button[aria-label*="gallery cover"]')
+
+  it('only for admins, only where the parent passes coverId (inside a gallery)', () => {
+    expect(star(grid3('p1')).exists()).toBe(false) // guest
+    me.value = user(false)
+    expect(star(grid3('p1')).exists()).toBe(false)
+    me.value = user(true)
+    expect(star(grid3()).exists()).toBe(false) // not a gallery / older API
+    expect(star(grid3(null)).exists()).toBe(true)
+  })
+
+  it('pressed on the chosen cover; a click sets it, a click on the chosen one drops it', async () => {
+    me.value = user(true)
+    const off = grid3(null)
+    expect(star(off).attributes('aria-pressed')).toBe('false')
+    await star(off).trigger('click')
+    expect(off.emitted('cover')).toEqual([['p1']])
+
+    const on = grid3('p1')
+    expect(star(on).attributes('aria-pressed')).toBe('true')
+    await star(on).trigger('click')
+    expect(on.emitted('cover')).toEqual([[null]])
+  })
+})

@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { computed, onMounted, onServerPrefetch, useSSRContext } from 'vue'
+import { computed, onMounted, onServerPrefetch, ref, useSSRContext } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { ApiError, getGallery, getGalleryPhotos, type Gallery } from '@/api'
+import { ApiError, getGallery, getGalleryPhotos, setGalleryCover, type Gallery } from '@/api'
+import { errorMessage } from '@/i18n'
 import { useInfiniteList } from '@/composables/useInfiniteList'
 import { usePageMeta } from '@/composables/usePageMeta'
 import { useSsrState } from '@/ssr'
@@ -53,6 +54,24 @@ const { items, total, loading, error, canRetry, empty, loadMore, remove } = useI
   `photos:${props.id}`,
   (page) => getGalleryPhotos(props.id, page),
 )
+
+// admin star on a photo: make it the cover, or drop the chosen one (random again). The answer is the gallery
+const coverBusy = ref(false)
+async function setCover(photoId: string | null) {
+  coverBusy.value = true
+  try {
+    gallery.value = await setGalleryCover(props.id, photoId)
+  } catch (e) {
+    alert(errorMessage(t, e))
+  } finally {
+    coverBusy.value = false
+  }
+}
+// a deleted cover: the backend drops it (SET_NULL), so the star goes out with the photo
+function onDelete(id: string) {
+  remove(id)
+  if (gallery.value?.coverId === id) gallery.value.coverId = null
+}
 import ListStatus from '@/components/ListStatus.vue'
 </script>
 
@@ -68,7 +87,10 @@ import ListStatus from '@/components/ListStatus.vue'
       :load-more="loadMore"
       :guest-free="10"
       hide-gallery
-      @delete="remove"
+      :cover-id="gallery?.coverId"
+      :cover-busy="coverBusy"
+      @delete="onDelete"
+      @cover="setCover"
       :alt="(_, i) => $t('gallery.photoAlt', { gallery: gallery?.title ?? '', n: i + 1 })"
     />
   </article>

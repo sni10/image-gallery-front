@@ -167,7 +167,9 @@
     "locked": "Sign in to see this photo",
     "similar": "Similar photos",
     "share": "Share",
-    "copied": "Link copied"
+    "copied": "Link copied",
+    "coverSet": "Make the gallery cover",
+    "coverUnset": "Remove as the gallery cover"
   },
   "complaint": {
     "title": "Complaint",

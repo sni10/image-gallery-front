@@ -18,8 +18,14 @@ const props = defineProps<{
   alt: (p: Photo, i: number) => string
   guestFree?: number // guests see this many first photos; the rest are blurred until sign-in. Default: all
   hideGallery?: boolean // inside a gallery its own name on every photo is noise
+  // inside a gallery: the chosen cover's id (null = none) shows admins a star to pick it. Undefined = no star
+  coverId?: string | null
+  coverBusy?: boolean
 }>()
-const emit = defineEmits<{ delete: [id: string] }>() // parent drops it from the list
+const emit = defineEmits<{
+  delete: [id: string] // parent drops it from the list
+  cover: [id: string | null] // parent saves it: a photo id, or null to drop the chosen cover
+}>()
 
 // Locked = API sent no url (guest). SSR is always anonymous: signed-in users get page 1 again with the token
 // (useInfiniteList), so their blur goes away after hydration.
@@ -138,6 +144,30 @@ function open(e: MouseEvent, i: number) {
             aria-hidden="true"
           >
             <path d="M4 7h16M10 11v6M14 11v6M5 7l1 13h12l1-13M9 7V4h6v3" />
+          </svg>
+        </button>
+        <!-- gallery cover (admin): filled and always visible on the chosen one -->
+        <button
+          v-if="me?.isAdmin && coverId !== undefined"
+          type="button"
+          class="btn btn-circle btn-sm absolute top-2 right-22 border-0 bg-black/45 text-white opacity-0 transition-opacity group-hover:opacity-100 hover:text-warning focus-visible:opacity-100 aria-pressed:text-warning aria-pressed:opacity-100 [@media(hover:none)]:opacity-100"
+          :aria-pressed="coverId === p.id"
+          :disabled="coverBusy"
+          :title="$t(coverId === p.id ? 'photo.coverUnset' : 'photo.coverSet')"
+          :aria-label="$t(coverId === p.id ? 'photo.coverUnset' : 'photo.coverSet')"
+          @click="emit('cover', coverId === p.id ? null : p.id)"
+        >
+          <svg
+            viewBox="0 0 24 24"
+            width="16"
+            height="16"
+            :fill="coverId === p.id ? 'currentColor' : 'none'"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <path d="M12 3l2.8 5.7 6.2.9-4.5 4.4 1.1 6.2L12 17.3l-5.6 2.9 1.1-6.2L3 9.6l6.2-.9z" />
           </svg>
         </button>
         <!-- hidden until hover on mouse devices; always visible on touch and when favorited -->

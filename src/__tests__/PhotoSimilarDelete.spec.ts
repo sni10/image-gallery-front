@@ -24,7 +24,7 @@ afterEach(() => {
   me.value = null
 })
 
-it('admin trash in the similar photos drops the photo from the grid', async () => {
+it('admin trash in the similar photos: the photo goes, the next similar one takes its place', async () => {
   vi.stubGlobal(
     'ResizeObserver',
     class {
@@ -33,12 +33,19 @@ it('admin trash in the similar photos drops the photo from the grid', async () =
     },
   )
   vi.stubGlobal('confirm', () => true)
+  // fake backend: the two most similar of s1..s3 that are not deleted
+  const gone = new Set<string>()
   vi.stubGlobal(
     'fetch',
     vi.fn(async (url: string, init?: RequestInit) => {
-      if (init?.method === 'DELETE') return new Response(null, { status: 204 })
-      if (url.includes('/similar'))
-        return new Response(JSON.stringify({ items: [photo('s1'), photo('s2')] }))
+      if (init?.method === 'DELETE') {
+        gone.add(url.split('/').pop()!)
+        return new Response(null, { status: 204 })
+      }
+      if (url.includes('/similar')) {
+        const items = ['s1', 's2', 's3'].filter((id) => !gone.has(id)).slice(0, 2)
+        return new Response(JSON.stringify({ items: items.map(photo) }))
+      }
       return new Response(JSON.stringify(photo('p1')))
     }),
   )
@@ -59,5 +66,5 @@ it('admin trash in the similar photos drops the photo from the grid', async () =
 
   await w.find('#similar-title ~ * button[aria-label="Delete photo"]').trigger('click')
   await flushPromises()
-  expect(similar()).toEqual(['/photos/s2'])
+  expect(similar()).toEqual(['/photos/s2', '/photos/s3'])
 })

@@ -29,7 +29,8 @@ export interface Gallery {
   title: string
   category: Pick<Category, 'id' | 'slug' | 'title'>
   photosCount: number
-  cover: Photo | null // random photo of the gallery, new on each request; null if empty
+  cover: Photo | null // the chosen cover, else a random photo of the gallery, new on each request; null if empty
+  coverId?: string | null // the chosen cover; null = none, random. Optional: older API lacks it
 }
 
 // GET /photos/{id}: the photo page
@@ -183,6 +184,10 @@ export const getGalleries = (page = 1, limit = 20, category?: string, q?: string
   )
 
 export const getGallery = (id: string) => get<Gallery>(`/galleries/${encodeURIComponent(id)}`)
+
+// admin only (SPEC-gallery-cover.md in the backend repo): a photo of this gallery, or null = random again
+export const setGalleryCover = (id: string, photoId: string | null) =>
+  request<Gallery>('PATCH', `/galleries/${encodeURIComponent(id)}`, { cover: photoId })
 
 export const getGalleryPhotos = (id: string, page = 1, limit = 20) =>
   get<Page<Photo>>(`/galleries/${encodeURIComponent(id)}/photos?page=${page}&limit=${limit}`)

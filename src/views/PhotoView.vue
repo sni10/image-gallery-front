@@ -58,11 +58,19 @@ function refresh() {
 // Similar photos under the main one: rendered on the server (internal links for crawlers).
 // An error just hides the block. Signed in: fetched again with the token, like the photo itself
 const similar = useSsrState<Photo[]>(`similar:${props.id}`, () => [])
+// admin trash: drop it at once, then ask again so the next similar one takes its place.
+// `deleted` guards against an earlier answer that lands after a later delete
+const deleted = new Set<string>()
 const loadSimilar = () =>
   getSimilar(props.id).then(
-    (r) => (similar.value = r.items),
+    (r) => (similar.value = r.items.filter((p) => !deleted.has(p.id))),
     () => {},
   )
+function removeSimilar(id: string) {
+  deleted.add(id)
+  similar.value = similar.value.filter((p) => p.id !== id)
+  loadSimilar()
+}
 onServerPrefetch(loadSimilar)
 onMounted(() => (!similar.value.length || hasSession()) && loadSimilar())
 
@@ -302,7 +310,7 @@ const crumbs = computed(() => {
       :total="similar.length"
       :load-more="async () => {}"
       :alt="(p) => p.title"
-      @delete="(id) => (similar = similar.filter((p) => p.id !== id))"
+      @delete="removeSimilar"
     />
   </section>
 </template>
