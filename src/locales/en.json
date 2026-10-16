@@ -138,11 +138,10 @@
     "failed": "Couldn't save to favorites"
   },
   "wave": {
-    "title": "My wave",
-    "refresh": "Refresh the wave",
-    "end": "That is all for now. Like something else and refresh the wave",
-    "hint": "Add photos to favorites and the wave will adjust",
-    "photoAlt": "My wave — photo {n}"
+    "start": "My wave",
+    "stop": "Stop the wave",
+    "end": "That is all for now. Like something else and start the wave again",
+    "hint": "Add photos to favorites and the wave will adjust"
   },
   "collections": {
     "title": "Collections",

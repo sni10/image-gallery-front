@@ -96,13 +96,20 @@ export function useInfiniteList<T extends { id: string }>(
     if (items.value.length < before) total.value--
   }
 
-  // start over from page 1 (the wave's "refresh"); call it while not loading
+  // The fetcher switched source (favorites <-> wave), call while not loading.
+  // reset: drop what's loaded, start from page 1. resume: keep it and go on, even if the old source ran out.
   function reset() {
     Object.assign(state.value, init())
     done.value = false
     failure.value = null
     return loadMore()
   }
+  function resume() {
+    done.value = false
+    failure.value = null
+    total.value = Math.max(total.value, items.value.length + 1)
+    return loadMore()
+  }
 
-  return { items, total, loading, error, canRetry, empty, loadMore, remove, reset }
+  return { items, total, loading, error, canRetry, empty, loadMore, remove, reset, resume }
 }
