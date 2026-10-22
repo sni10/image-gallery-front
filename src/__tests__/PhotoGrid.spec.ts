@@ -106,7 +106,7 @@ describe('API lock (Photo.locked, url: null)', () => {
       global: { plugins: [createI18nFor('en'), createRouter()] },
     })
 
-  it('the API flag wins over the legacy guest rule; locked photos carry no original url', () => {
+  it('the API flag wins over the legacy guest rule; no original url in the grid', () => {
     const w = grid2(
       [
         { ...photo, id: 'open', locked: false },
@@ -115,7 +115,7 @@ describe('API lock (Photo.locked, url: null)', () => {
       0,
     )
     expect(w.findAll('img').map((i) => i.classes().includes('blur-2xl'))).toEqual([false, true])
-    expect(w.findAll('meta[itemprop="contentUrl"]')).toHaveLength(1)
+    expect(w.html()).not.toContain('/p.jpg') // originals stay out of the DOM: mass downloaders harvest it
   })
 
   it('no thumb either: a sized placeholder instead of an image', () => {

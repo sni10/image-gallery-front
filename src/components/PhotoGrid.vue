@@ -113,7 +113,6 @@ function open(e: MouseEvent, i: number) {
             🔒 {{ $t('photo.locked') }}
           </span>
         </a>
-        <meta v-if="p.url" itemprop="contentUrl" :content="p.url" />
         <!-- the photo's gallery: keep browsing the theme. Same reveal rules as the buttons -->
         <RouterLink
           v-if="p.gallery && !hideGallery"
