@@ -30,11 +30,13 @@ usePageMeta(() =>
   gallery.value
     ? {
         title: gallery.value.title,
-        description: t(
-          'gallery.description',
-          { title: gallery.value.title, n: gallery.value.photosCount },
-          gallery.value.photosCount,
-        ),
+        description:
+          gallery.value.description ||
+          t(
+            'gallery.description',
+            { title: gallery.value.title, n: gallery.value.photosCount },
+            gallery.value.photosCount,
+          ),
         image: gallery.value.cover?.thumbUrl ?? undefined, // url is signed and expires: bots need a stable one
       }
     : {},
@@ -80,6 +82,13 @@ import ListStatus from '@/components/ListStatus.vue'
 
   <article aria-labelledby="gallery-title" itemscope itemtype="https://schema.org/ImageGallery">
     <h1 id="gallery-title" itemprop="name">{{ gallery?.title ?? '…' }}</h1>
+    <p
+      v-if="gallery?.description"
+      class="mb-6 max-w-prose whitespace-pre-line text-base-content/80"
+      itemprop="description"
+    >
+      {{ gallery.description }}
+    </p>
 
     <PhotoGrid
       :items="items"

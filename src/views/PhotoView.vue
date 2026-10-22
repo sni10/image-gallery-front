@@ -298,7 +298,13 @@ const crumbs = computed(() => {
     <meta v-if="photo.thumbUrl" itemprop="thumbnailUrl" :content="photo.thumbUrl" />
     <meta itemprop="width" :content="String(photo.width)" />
     <meta itemprop="height" :content="String(photo.height)" />
-    <meta v-if="photo.description" itemprop="description" :content="photo.description" />
+    <figcaption
+      v-if="photo.description"
+      class="mt-4 max-w-prose whitespace-pre-line text-base-content/80"
+      itemprop="description"
+    >
+      {{ photo.description }}
+    </figcaption>
     <meta v-if="photo.tags.length" itemprop="keywords" :content="photo.tags.join(', ')" />
   </figure>
   <div v-else-if="failure" class="alert alert-error my-8 w-auto" role="alert">

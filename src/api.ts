@@ -27,6 +27,7 @@ export interface Category {
 export interface Gallery {
   id: string
   title: string
+  description?: string // SEO text of the gallery page, may be empty. Optional: older API lacks it
   category: Pick<Category, 'id' | 'slug' | 'title'>
   photosCount: number
   cover: Photo | null // the chosen cover, else a random photo of the gallery, new on each request; null if empty
