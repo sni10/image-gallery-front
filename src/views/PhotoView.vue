@@ -300,7 +300,7 @@ const crumbs = computed(() => {
     <meta itemprop="height" :content="String(photo.height)" />
     <figcaption
       v-if="photo.description"
-      class="mt-4 max-w-prose whitespace-pre-line text-base-content/80"
+      class="mt-4 whitespace-pre-line text-base-content/80"
       itemprop="description"
     >
       {{ photo.description }}

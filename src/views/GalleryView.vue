@@ -84,7 +84,7 @@ import ListStatus from '@/components/ListStatus.vue'
     <h1 id="gallery-title" itemprop="name">{{ gallery?.title ?? '…' }}</h1>
     <p
       v-if="gallery?.description"
-      class="mb-6 max-w-prose whitespace-pre-line text-base-content/80"
+      class="mb-6 whitespace-pre-line text-base-content/80"
       itemprop="description"
     >
       {{ gallery.description }}
