@@ -182,7 +182,7 @@
   },
   "cookies": {
     "title": "Cookies",
-    "text": "We use necessary cookies (age confirmation, sign-in) and, with your consent, a cookie that remembers your language. No ads or tracking.",
+    "text": "We use necessary cookies (age confirmation, sign-in) and, with your consent, a language cookie and Google Analytics (visit statistics). No ads.",
     "accept": "Accept",
     "decline": "Decline"
   },
@@ -251,20 +251,20 @@
       },
       {
         "title": "2. What we collect",
-        "body": "Account: email, password (stored only as a one-way hash, we never see it), sign-up date, the date and version of the Terms you accepted, your favorites and collections.\nComplaints: the email, link and message you send, plus your IP address, browser (User-Agent) and time.\nServer logs: IP address, browser and requested pages.\nWe do not collect payment data and use no analytics, advertising trackers or third-party scripts."
+        "body": "Account: email, password (stored only as a one-way hash, we never see it), sign-up date, the date and version of the Terms you accepted, your favorites and collections.\nComplaints: the email, link and message you send, plus your IP address, browser (User-Agent) and time.\nServer logs: IP address, browser and requested pages.\nWe do not collect payment data and use no advertising trackers. If you accept cookies, Google Analytics collects visit statistics: pages viewed, browser, device, approximate location."
       },
       {
         "title": "3. Why we use it",
-        "body": "Account data: to provide the service you signed up for (GDPR Art. 6(1)(b)).\nComplaints and server logs: our legitimate interest in handling requests, preventing abuse and keeping the Site working (Art. 6(1)(f)).\nLanguage cookie: your consent (Art. 6(1)(a)).\nWe send only service emails (sign-up confirmation, email change, replies to complaints), never newsletters or ads."
+        "body": "Account data: to provide the service you signed up for (GDPR Art. 6(1)(b)).\nComplaints and server logs: our legitimate interest in handling requests, preventing abuse and keeping the Site working (Art. 6(1)(f)).\nLanguage and Google Analytics cookies: your consent (Art. 6(1)(a)).\nWe send only service emails (sign-up confirmation, email change, replies to complaints), never newsletters or ads."
       },
       {
         "title": "4. Cookies and local storage",
-        "body": "age_ok: remembers that you confirmed you are 18+. Necessary, 1 year.\ncookies: remembers your answer to the cookie banner. Necessary, 1 year.\nlocale: remembers your language. Only if you accept cookies, 1 year.\nSecurity cookies of our protection service (for example __cf_bm): tell people from bots. Necessary, up to 30 minutes.\nrefresh (browser local storage): keeps you signed in. Necessary, removed when you sign out.\nYou can change your choice at any time:",
+        "body": "age_ok: remembers that you confirmed you are 18+. Necessary, 1 year.\ncookies: remembers your answer to the cookie banner. Necessary, 1 year.\nlocale: remembers your language. Only if you accept cookies, 1 year.\n_ga, _ga_*: Google Analytics, visit statistics. Only if you accept cookies, up to 2 years.\nSecurity cookies of our protection service (for example __cf_bm): tell people from bots. Necessary, up to 30 minutes.\nrefresh (browser local storage): keeps you signed in. Necessary, removed when you sign out.\nYou can change your choice at any time:",
         "cookies": "Change cookie choice"
       },
       {
         "title": "5. Who receives your data",
-        "body": "Only service providers that run the Site for us: hosting, protection against attacks and email delivery. They process data on our instructions and only to run the Site. We do not sell your data and do not share it for advertising. We disclose data to authorities only when the law requires it."
+        "body": "Only service providers that run the Site for us: hosting, protection against attacks, email delivery and, if you accept cookies, visit statistics (Google Analytics). They process data on our instructions and only to run the Site. We do not sell your data and do not share it for advertising. We disclose data to authorities only when the law requires it."
       },
       {
         "title": "6. Transfer outside the EU",
