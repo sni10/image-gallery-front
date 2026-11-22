@@ -19,7 +19,7 @@ afterEach(() => vi.unstubAllGlobals())
 const feed = () => urls.filter((u) => u.includes('/photos?'))
 
 it('tag page: newest photos with that tag, indexable', async () => {
-  const r = await render('/tags/neon', 'age_ok=1')
+  const r = await render('/tags/neon', undefined)
   expect(feed()[0]).toContain('sort=new')
   expect(feed()[0]).toContain('tag=neon')
   expect(r.head).toContain('<title>#neon · ArtAI.win</title>')
@@ -29,13 +29,13 @@ it('tag page: newest photos with that tag, indexable', async () => {
 })
 
 it('search: popular first with q, noindex; under 2 chars no request', async () => {
-  const r = await render('/search?q=%20neo%20', 'age_ok=1')
+  const r = await render('/search?q=%20neo%20', undefined)
   expect(feed()[0]).toContain('sort=popular')
   expect(feed()[0]).toContain('q=neo')
   expect(r.head).toContain('noindex')
   expect(r.html).toContain('value="neo"')
 
   urls.length = 0
-  await render('/search?q=a', 'age_ok=1')
+  await render('/search?q=a', undefined)
   expect(feed()).toEqual([])
 })

@@ -13,11 +13,11 @@ it('?sort= picks the feed order; unknown values fall back to random; each order 
       return new Response(JSON.stringify(url.includes('/photos') ? { items: [], total: 0 } : []))
     }),
   )
-  const r = await render('/?sort=new', 'age_ok=1')
+  const r = await render('/?sort=new', undefined)
   expect(urls.some((u) => u.includes('/photos?sort=new&'))).toBe(true)
   expect(r.html).toContain('href="/?sort=popular"')
 
   urls.length = 0
-  await render('/?sort=evil', 'age_ok=1')
+  await render('/?sort=evil', undefined)
   expect(urls.some((u) => u.includes('/photos?sort=random&'))).toBe(true)
 })

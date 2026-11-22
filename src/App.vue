@@ -5,7 +5,6 @@ import { me } from '@/api'
 import { useTemplateRef, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { useCategories } from '@/composables/useCategories'
-import AgeGate from '@/components/AgeGate.vue'
 import ScrollTop from '@/components/ScrollTop.vue'
 import CookieBanner from '@/components/CookieBanner.vue'
 import CollectionPicker from '@/components/CollectionPicker.vue'
@@ -229,5 +228,4 @@ function setLocale(l: Locale) {
       </button>
     </div>
   </div>
-  <AgeGate />
 </template>

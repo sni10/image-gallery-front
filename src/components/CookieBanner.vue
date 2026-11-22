@@ -2,7 +2,7 @@
 import { onMounted } from 'vue'
 import { useSsrState } from '@/ssr'
 
-// Cookie consent. Necessary cookies (age gate, this choice) and the session in localStorage work either way;
+// Cookie consent. Necessary cookies (this choice) and the session in localStorage work either way;
 // "decline" turns off the optional one: the language cookie (saveLocale in i18n.ts).
 // The answer is a cookie, so the server renders the banner only for visitors who haven't chosen yet.
 const choice = useSsrState<'yes' | 'no' | null>('cookies', () => null)

@@ -44,7 +44,7 @@ describe('photo page SSR', () => {
 
   it('arrows to gallery neighbours (none at the start), tags under the photo', async () => {
     respond(200, photo)
-    const r = await render('/photos/p1', 'age_ok=1')
+    const r = await render('/photos/p1', undefined)
     expect(r.html).toContain('href="/photos/p2"')
     expect(r.html).toContain('rel="next"')
     expect(r.html).not.toContain('rel="prev"')
@@ -63,7 +63,7 @@ describe('photo page SSR', () => {
 describe('photo page lock from the API', () => {
   it('locked: blurred thumb, the original url is nowhere in the page', async () => {
     respond(200, { ...photo, url: null, locked: true })
-    const r = await render('/photos/p1', 'age_ok=1')
+    const r = await render('/photos/p1', undefined)
     expect(r.html).toContain('src="https://api/t.webp"')
     expect(r.html).toContain('blur-2xl')
     expect(r.html + r.state).not.toContain('p.png')
@@ -71,7 +71,7 @@ describe('photo page lock from the API', () => {
 
   it('free for guests (first photos of a gallery): the original, no blur', async () => {
     respond(200, { ...photo, locked: false })
-    const r = await render('/photos/p1', 'age_ok=1')
+    const r = await render('/photos/p1', undefined)
     expect(r.html).toContain('src="https://api/p.png"')
     expect(r.html).not.toContain('blur-2xl')
     expect(r.html).toContain('cursor-zoom-in') // opens the viewer
@@ -82,13 +82,13 @@ describe('photo page lock from the API', () => {
 describe('similar photos', () => {
   it('rendered on the server under the photo, as links to their pages', async () => {
     respond(200, photo, [{ ...photo, id: 'p7', title: 'Neon dog' }])
-    const r = await render('/photos/p1', 'age_ok=1')
+    const r = await render('/photos/p1', undefined)
     expect(r.html).toContain('id="similar-title"')
     expect(r.html).toContain('href="/photos/p7"')
   })
 
   it('no similar photos: no block', async () => {
     respond(200, photo)
-    expect((await render('/photos/p1', 'age_ok=1')).html).not.toContain('id="similar-title"')
+    expect((await render('/photos/p1', undefined)).html).not.toContain('id="similar-title"')
   })
 })
